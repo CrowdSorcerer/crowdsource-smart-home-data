@@ -1,0 +1,116 @@
+openapi: 3.0.1
+x-original-swagger-version: '2.0'
+info:
+    title: CrowdSorcerer Ingest API
+    version: 0.0.1
+    description: The Ingest API for data ingestion into the data lake (WIP).
+    #TODO
+    termsOfService: 'http://swagger.io/terms/'
+    license:
+        #TODO
+        name: 'Apache 2.0'
+        #TODO
+        url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+    contact:
+        #TODO
+        name: API Support
+        #TODO
+        url: link
+        #TODO
+        email: apiteam@swagger.io
+components:
+    schemas:
+        ApiResponse:
+            example:
+                code: 0
+                message: message
+                type: type
+            properties:
+                code:
+                    format: int32
+                    type: integer
+                message:
+                    type: string
+                type:
+                    type: string
+            type: object
+    parameters:
+        HomeUUID:
+            name: Home-UUID
+            in: header
+            description: This home's UUID
+            schema:
+                type: string
+                format: uuid
+            required: true
+paths:
+    /data:
+        post:
+            operationId: data_upload
+            requestBody:
+                content:
+                    application/octet-stream:
+                        schema:
+                            type: string
+                            format: binary
+                            description: The data extracted by the Home Assitant Aggregator, to be uploaded to the data lake 
+                description: The Home data to be uploaded, including its UUID
+                required: true
+            parameters:
+                - $ref: '#/components/parameters/HomeUUID'
+            responses:
+                '200':
+                    content: {}
+                    description: Successfully uploaded the data
+                default:
+                    content: {}
+                    description: Operation could not be carried out for an undefined reason
+            summary: Upload Home data linked to an UUID
+            tags:
+                - data_upload
+            x-codegen-request-body-name: body
+            x-openapi-router-controller: swagger_server.controllers.data_controller
+        delete:
+            operationId: data_deletion
+            parameters:
+                - $ref: '#/components/parameters/HomeUUID'
+            responses:
+                '200':
+                    content: {}
+                    description: The data for the specified UUID is cleared from the platform
+                default:
+                    content: {}
+                    description: Operation could not be carried out for an undefined reason
+            summary: Clear Home data linked to an UUID
+            tags:
+                - data_deletion
+            x-openapi-router-controller: swagger_server.controllers.data_controller
+
+servers:
+    - 
+        url: 'https://smarthouse.av.it.pt/api/ingest'
+        description: SmartHouse data gathering instance hosting the API
+tags:
+    - 
+        #TODO: review this description if system becomes more robust
+        description: >
+            # Data upload
+
+            Through the Home Assistant Aggregator, each home produces a data payload that is inserted into the platform as it is received.
+            Each of these payloads is associated with an UUID, which is stored within the Aggregator instances and is sent along with the data.
+            The data upload to the platform is done publicly, with no proper authentication.
+            
+            *As it stands, this UUID effectively identifies the home that produced its data, but no guarantees are made that the UUID was used by a single home, or if any data it is associated with is forged.*
+        #externalDocs:
+        name: data_upload
+    -
+        description: >
+            # Data deletion
+
+            Completely delete data associated with an UUID.
+            This is the operation behind the Forget/Opt-out feature.
+            The users have the right to delete all records from the platform at any time, provided they have the UUID that they uploaded the data by.
+            
+            This operation can be executed publicly on any UUID, but no feedback is transmitted on whether or not the UUID existed previously on the platform.
+            Although, if the operation fails for some reason, that is explicitly expressed.
+        name: data_deletion
