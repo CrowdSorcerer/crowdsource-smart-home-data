@@ -54,7 +54,7 @@ paths:
                             type: string
                             format: binary
                             description: The data extracted by the Home Assitant Aggregator, to be uploaded to the data lake 
-                description: The Home data to be uploaded, including its UUID
+                description: The Home data to be uploaded
                 required: true
             parameters:
                 - $ref: '#/components/parameters/HomeUUID'
@@ -68,8 +68,6 @@ paths:
             summary: Upload Home data linked to an UUID
             tags:
                 - data_upload
-            x-codegen-request-body-name: body
-            x-openapi-router-controller: swagger_server.controllers.data_controller
         delete:
             operationId: data_deletion
             parameters:
@@ -84,8 +82,6 @@ paths:
             summary: Clear Home data linked to an UUID
             tags:
                 - data_deletion
-            x-openapi-router-controller: swagger_server.controllers.data_controller
-
 servers:
     - 
         url: 'https://smarthouse.av.it.pt/api/ingest'
