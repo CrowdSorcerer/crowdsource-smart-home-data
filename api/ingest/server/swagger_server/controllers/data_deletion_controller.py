@@ -2,9 +2,11 @@ import connexion
 import six
 
 from swagger_server import util
+from hudi_utils.operations import HudiOperations
+from uuid import UUID
+from .exceptions import MalformedUUID
 
-
-def data_deletion(home_uuid):  # noqa: E501
+def data_deletion():  # noqa: E501
     """Clear Home data linked to an UUID
 
      # noqa: E501
@@ -16,9 +18,12 @@ def data_deletion(home_uuid):  # noqa: E501
     """
 
     # Obtain header data
-    home_uuid = connexion.request.headers['Home-UUID']
+    home_uuid_str = connexion.request.headers['Home-UUID']
+
+    try:
+        home_uuid = UUID(home_uuid_str)
+    except ValueError:
+        raise MalformedUUID()
 
     # Remove records from the data lake
-    #TODO
-
-    return 'do some magic!'
+    HudiOperations.delete_data(home_uuid)
