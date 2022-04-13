@@ -13,6 +13,4 @@ EXPOSE 8080
 
 ENTRYPOINT ["python3"]
 
-ENV CSHD_INGEST_TIMEZONE="Europe/Lisbon"
-
 CMD ["-m", "swagger_server"]

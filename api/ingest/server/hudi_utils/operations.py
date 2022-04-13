@@ -1,17 +1,16 @@
-import json
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import lit
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from uuid import UUID
 import pandas
 
 class HudiOperations:
 
-    # CSHD_INGEST_TIMEZONE = environ.get('CSHD_INGEST_TIMEZONE')
-
     SPARK = SparkSession.builder.getOrCreate()
     TABLE_NAME = 'hudi_ingest_api_test'
     BASE_PATH = 'file:///tmp/hudi_ingest_api_test'
+
+    TIMEZONE = timezone(timedelta(hours=0))
 
     HUDI_INSERT_OPTIONS = {
         'hoodie.table.name': TABLE_NAME,
@@ -44,7 +43,7 @@ class HudiOperations:
         data['uuid'] = str(uuid)
         
         # TODO: no time zone?
-        dt = datetime.now()
+        dt = datetime.now(tz=cls.TIMEZONE)
         data['year'], data['week'], data['weekday'] = dt.isocalendar()
         data['month'], data['hour'] = dt.month, dt.hour
 
