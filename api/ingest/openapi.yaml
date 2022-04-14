@@ -19,21 +19,6 @@ info:
         #TODO
         email: apiteam@swagger.io
 components:
-    schemas:
-        ApiResponse:
-            example:
-                code: 0
-                message: message
-                type: type
-            properties:
-                code:
-                    format: int32
-                    type: integer
-                message:
-                    type: string
-                type:
-                    type: string
-            type: object
     parameters:
         HomeUUID:
             name: Home-UUID
@@ -60,10 +45,8 @@ paths:
                 - $ref: '#/components/parameters/HomeUUID'
             responses:
                 '200':
-                    content: {}
                     description: Successfully uploaded the data
                 default:
-                    content: {}
                     description: Operation could not be carried out for an undefined reason
             summary: Upload Home data linked to an UUID
             tags:
@@ -74,10 +57,8 @@ paths:
                 - $ref: '#/components/parameters/HomeUUID'
             responses:
                 '200':
-                    content: {}
                     description: The data for the specified UUID is cleared from the platform
                 default:
-                    content: {}
                     description: Operation could not be carried out for an undefined reason
             summary: Clear Home data linked to an UUID
             tags:

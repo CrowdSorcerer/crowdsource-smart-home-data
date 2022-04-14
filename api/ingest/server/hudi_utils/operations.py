@@ -36,30 +36,36 @@ class HudiOperations:
     @classmethod
     def send_data(cls, data, uuid: UUID):
 
-        data = {
-            "data": data
-        }
+        # TODO: data structure is not yet properly defined: what's the compression used here?
+        data = { "data": data }
 
         data['uuid'] = str(uuid)
         
-        # TODO: no time zone?
         dt = datetime.now(tz=cls.TIMEZONE)
         data['year'], data['week'], data['weekday'] = dt.isocalendar()
         data['month'], data['hour'] = dt.month, dt.hour
 
-        # df = cls.SPARK.read.json(cls.SPARK.sparkContext.parallelize([str(data)], 2))
         df = cls.SPARK.createDataFrame(pandas.DataFrame(data, index=[0]))
         df.write.format('hudi') \
             .options(**cls.HUDI_INSERT_OPTIONS) \
-            .mode('overwrite') \
+            .mode('append') \
             .save(cls.BASE_PATH)
 
     @classmethod
     def delete_data(cls, uuid: UUID):
-        
+        # Make sure that this is a valid UUID, especially since it will be formatted into an SQL string
+        if not isinstance(uuid, UUID):
+            raise ValueError("'uuid' argument is not of type UUID")
+
+        # TODO: is this really necessary??
+        df = cls.SPARK.read \
+            .format('hudi') \
+            .load(cls.BASE_PATH)
+        df.createOrReplaceTempView('hudi_tmp_del')
+
         # This shouldn't pose an SQL Injection problem, right?
-        # If someone could ever change the value of table_name, then there would be bigger problems, and the uuid should be a valid UUID
-        ds = cls.SPARK.sql(f'select uuid, year, month, week, weekday, hour from {cls.TABLE_NAME} where uuid="{uuid}"')
+        # The uuid should be a valid UUID at this point
+        ds = cls.SPARK.sql(f'select uuid, year, month, week, weekday, hour from hudi_tmp_del where uuid="{uuid}"')
         
         # TODO: check if tuple(row) works, which would be simpler
         deletes = list(map(lambda row: (row[0], row[1], row[2], row[3], row[4], row[5]), ds.collect()))
