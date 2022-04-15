@@ -53,7 +53,8 @@ class HudiOperations:
 
     @classmethod
     def delete_data(cls, uuid: UUID):
-        # Make sure that this is a valid UUID, especially since it will be formatted into an SQL string
+        
+        # Make sure that this is a valid UUID, especially since it will be formatted into a SQL string
         if not isinstance(uuid, UUID):
             raise ValueError("'uuid' argument is not of type UUID")
 
@@ -63,7 +64,7 @@ class HudiOperations:
             .load(cls.BASE_PATH)
         df.createOrReplaceTempView('hudi_tmp_del')
 
-        # This shouldn't pose an SQL Injection problem, right?
+        # This shouldn't pose a SQL Injection problem, right?
         # The uuid should be a valid UUID at this point
         ds = cls.SPARK.sql(f'select uuid, year, month, week, weekday, hour from hudi_tmp_del where uuid="{uuid}"')
         
