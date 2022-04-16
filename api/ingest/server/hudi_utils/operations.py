@@ -15,35 +15,32 @@ class HudiOperations:
     HUDI_INSERT_OPTIONS = {
         'hoodie.table.name': TABLE_NAME,
         'hoodie.datasource.write.recordkey.field': 'uuid',
-        'hoodie.datasource.write.partitionpath.field': 'year,month,week,weekday,hour',
+        'hoodie.datasource.write.partitionpath.field': 'timepartition',
         'hoodie.datasource.write.table.name': TABLE_NAME,
         'hoodie.datasource.write.operation': 'insert',
-        'hoodie.datasource.write.precombine.field': 'ts',
-        'hoodie.insert.shuffle.parallelism': 2
+        'hoodie.datasource.write.precombine.field': 'ts'
     }
 
     HUDI_DELETE_OPTIONS = {
         'hoodie.table.name': TABLE_NAME,
         'hoodie.datasource.write.recordkey.field': 'uuid',
-        'hoodie.datasource.write.partitionpath.field': 'year,month,week,weekday,hour',
+        'hoodie.datasource.write.partitionpath.field': 'timepartition',
         'hoodie.datasource.write.table.name': TABLE_NAME,
         'hoddie.datasource.write.operation': 'delete',
-        'hoodie.datasource.write.precombine.field': 'ts',
-        'hoodie.upsert.shuffle.parallelism': 2,
-        'hoodie.insert.shuffle.parallelism': 2
+        'hoodie.datasource.write.precombine.field': 'ts'
     }
 
     @classmethod
-    def send_data(cls, data, uuid: UUID):
+    def send_data(cls, datab: bytes, uuid: UUID):
 
-        # TODO: data structure is not yet properly defined: what's the compression used here?
-        data = { "data": data }
-
+        data = uncompress_data(datab)
+        
         data['uuid'] = str(uuid)
         
         dt = datetime.now(tz=cls.TIMEZONE)
-        data['year'], data['week'], data['weekday'] = dt.isocalendar()
-        data['month'], data['hour'] = dt.month, dt.hour
+        year, week, weekday = dt.isocalendar()
+        data['timepartition'] = f'{year}/{week}/{weekday}/{dt.month}/{dt.hour}'
+        data['ts'] = dt.timestamp()
 
         df = cls.SPARK.createDataFrame(pandas.DataFrame(data, index=[0]))
         df.write.format('hudi') \
@@ -58,21 +55,27 @@ class HudiOperations:
         if not isinstance(uuid, UUID):
             raise ValueError("'uuid' argument is not of type UUID")
 
-        # TODO: is this really necessary??
-        df = cls.SPARK.read \
+        cls.SPARK.read \
             .format('hudi') \
-            .load(cls.BASE_PATH)
-        df.createOrReplaceTempView('hudi_tmp_del')
+            .load(cls.BASE_PATH) \
+            .createOrReplaceTempView('hudi_tmp_del')
 
-        # This shouldn't pose a SQL Injection problem, right?
         # The uuid should be a valid UUID at this point
-        ds = cls.SPARK.sql(f'select uuid, year, month, week, weekday, hour from hudi_tmp_del where uuid="{uuid}"')
+        ds = cls.SPARK.sql(f'select uuid, timepartition, data from hudi_tmp_del where uuid="{uuid}"')
         
+        if ds.count() == 0:
+            return
+
         # TODO: check if tuple(row) works, which would be simpler
-        deletes = list(map(lambda row: (row[0], row[1], row[2], row[3], row[4], row[5]), ds.collect()))
-        df = cls.SPARK.sparkContext.parallelize(deletes).toDF(['uuid', 'year', 'month', 'week', 'weekday', 'hour']).withColumn('ts', lit(0.0))
+        deletes = list(map(lambda row: (row[0], row[1], row[2]), ds.collect()))
+        df = cls.SPARK.sparkContext.parallelize(deletes).toDF(['uuid', 'timepartition', 'data']).withColumn('ts', lit(0.0))
         df.write.format('hudi') \
-            .options(cls.HUDI_DELETE_OPTIONS) \
+            .options(**cls.HUDI_DELETE_OPTIONS) \
             .mode('append') \
-            .save(cls.BASE_PATH)
-        
+            .save(cls.BASE_PATH)    
+    
+
+
+# TODO: What's the compression used here? Will we even need to use this?
+def uncompress_data(data: bytes) -> dict:
+    return {'data': data}
