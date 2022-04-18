@@ -12,6 +12,7 @@ def hudi_init():
         'org.apache.hudi:hudi-spark3.0.3-bundle_2.12:0.10.1',
         'org.apache.spark:spark-avro_2.12:3.0.3'
     ])
+    
     # This SparkSession configuration will be present in the entire application, since SparkSession is a singleton
     SparkSession.builder \
         .master(spark_master) \

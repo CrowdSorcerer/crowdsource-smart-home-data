@@ -2,11 +2,6 @@ openapi: 3.0.1
 info:
   title: CrowdSorcerer Ingest API
   description: The Ingest API for data ingestion into the data lake (WIP).
-  termsOfService: http://swagger.io/terms/
-  contact:
-    name: API Support
-    url: link
-    email: apiteam@swagger.io
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html

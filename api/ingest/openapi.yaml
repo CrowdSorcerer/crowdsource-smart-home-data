@@ -4,20 +4,14 @@ info:
     title: CrowdSorcerer Ingest API
     version: 0.0.1
     description: The Ingest API for data ingestion into the data lake (WIP).
-    #TODO
-    termsOfService: 'http://swagger.io/terms/'
+    #termsOfService: 'http://swagger.io/terms/'
     license:
-        #TODO
         name: 'Apache 2.0'
-        #TODO
         url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
-    contact:
-        #TODO
-        name: API Support
-        #TODO
-        url: link
-        #TODO
-        email: apiteam@swagger.io
+    #contact:
+        #name: API Support
+        #url: link
+        #email: apiteam@swagger.io
 components:
     parameters:
         HomeUUID:
