@@ -17,5 +17,7 @@ def hudi_init():
     SparkSession.builder \
         .master(spark_master) \
         .config(key='spark.serializer', value='org.apache.spark.serializer.KryoSerializer') \
+        .config(key='spark.shuffle.service.enabled', value=False) \
+        .config(key='spark.dynamicAllocation.enabled', value=False) \
         .appName('Ingest API') \
         .getOrCreate()
