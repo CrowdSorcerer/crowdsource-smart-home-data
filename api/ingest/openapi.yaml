@@ -6,8 +6,8 @@ info:
     description: The Ingest API for data ingestion into the data lake (WIP).
     #termsOfService: 'http://swagger.io/terms/'
     license:
-        name: 'Apache 2.0'
-        url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+        name: 'GPLv3'
+        url: 'https://www.gnu.org/licenses/gpl-3.0.en.html'
     #contact:
         #name: API Support
         #url: link
