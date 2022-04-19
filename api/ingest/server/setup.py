@@ -12,13 +12,16 @@ VERSION = "1.0.0"
 # prerequisite: setuptools
 # http://pypi.python.org/pypi/setuptools
 
-REQUIRES = ["connexion"]
+REQUIRES = [
+    "connexion",
+    "swagger-ui-bundle>=0.0.2"
+]
 
 setup(
     name=NAME,
     version=VERSION,
     description="CrowdSorcerer Ingest API",
-    author_email="apiteam@swagger.io",
+    author_email="",
     url="",
     keywords=["Swagger", "CrowdSorcerer Ingest API"],
     install_requires=REQUIRES,

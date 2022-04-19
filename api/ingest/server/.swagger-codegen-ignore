@@ -21,3 +21,14 @@
 #docs/*.md
 # Then explicitly reverse the ignore rule for a single file:
 #!docs/README.md
+
+
+
+hudi_utils
+venv
+swagger_server/controllers/data_deletion_controller.py
+swagger_server/controllers/data_upload_controller.py
+swagger_server/__main__.py
+requirements.txt
+Dockerfile
+README.md

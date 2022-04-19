@@ -25,7 +25,7 @@ class HudiOperations:
         'hoodie.datasource.write.recordkey.field': 'uuid',
         'hoodie.datasource.write.partitionpath.field': 'path_year,path_month,path_week,path_weekday,path_hour',
         'hoodie.datasource.write.table.name': TABLE_NAME,
-        'hoddie.datasource.write.operation': 'delete',
+        'hoodie.datasource.write.operation': 'delete',
         'hoodie.datasource.write.precombine.field': 'ts'
     }
 
@@ -61,10 +61,10 @@ class HudiOperations:
         cls.SPARK.read \
             .format('hudi') \
             .load(cls.BASE_PATH) \
-            .createOrReplaceTempView('hudi_tmp_del')
+            .createOrReplaceTempView('hudi_trips_snapshot')
 
         # The uuid should be a valid UUID at this point
-        ds = cls.SPARK.sql(f'select uuid, path_year, path_month, path_week, path_weekday, path_hour from hudi_tmp_del where uuid="{uuid}"')
+        ds = cls.SPARK.sql(f'select uuid, path_year, path_month, path_week, path_weekday, path_hour from hudi_trips_snapshot where uuid="{uuid}"')
         
         if ds.count() == 0:
             return
@@ -74,7 +74,7 @@ class HudiOperations:
         df.write.format('hudi') \
             .options(**cls.HUDI_DELETE_OPTIONS) \
             .mode('append') \
-            .save(cls.BASE_PATH)    
+            .save(cls.BASE_PATH)
     
 
 
