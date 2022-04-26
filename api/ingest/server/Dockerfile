@@ -13,6 +13,6 @@ EXPOSE 8080
 
 ENTRYPOINT ["python3"]
 
-ENV INGEST_SPARK_MASTER=local
+ENV INGEST_BASE_PATH=local
 
 CMD ["-m", "swagger_server"]

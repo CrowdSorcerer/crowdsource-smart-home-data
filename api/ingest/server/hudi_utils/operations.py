@@ -2,31 +2,31 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import lit
 from datetime import datetime, timezone, timedelta
 from uuid import UUID
+from os import environ
 
 class HudiOperations:
 
     SPARK = SparkSession.builder.getOrCreate()
     TABLE_NAME = 'hudi_ingest_api'
-    BASE_PATH = 'file:///tmp/hudi_ingest_api'
+    BASE_PATH = environ.get('INGEST_BASE_PATH', 'file:///tmp/') + 'hudi_ingestion/'
 
     TIMEZONE = timezone(timedelta(hours=0))
 
-    HUDI_INSERT_OPTIONS = {
+    HUDI_BASE_OPTIONS = {
         'hoodie.table.name': TABLE_NAME,
         'hoodie.datasource.write.recordkey.field': 'uuid',
         'hoodie.datasource.write.partitionpath.field': 'path_year,path_month,path_week,path_weekday,path_hour',
         'hoodie.datasource.write.table.name': TABLE_NAME,
-        'hoodie.datasource.write.operation': 'insert',
-        'hoodie.datasource.write.precombine.field': 'ts'
+        'hoodie.datasource.write.precombine.field': 'ts',
+        'hoodie.write.markers.type': 'direct'
     }
 
-    HUDI_DELETE_OPTIONS = {
-        'hoodie.table.name': TABLE_NAME,
-        'hoodie.datasource.write.recordkey.field': 'uuid',
-        'hoodie.datasource.write.partitionpath.field': 'path_year,path_month,path_week,path_weekday,path_hour',
-        'hoodie.datasource.write.table.name': TABLE_NAME,
-        'hoodie.datasource.write.operation': 'delete',
-        'hoodie.datasource.write.precombine.field': 'ts'
+    HUDI_INSERT_OPTIONS = {**HUDI_BASE_OPTIONS,
+        'hoodie.datasource.write.operation': 'insert'
+    }
+
+    HUDI_DELETE_OPTIONS = {**HUDI_BASE_OPTIONS,
+        'hoodie.datasource.write.operation': 'delete'
     }
 
     @classmethod

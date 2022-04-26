@@ -9,16 +9,13 @@ This server uses the [Connexion](https://github.com/zalando/connexion) library o
 ## Requirements
 Python 3.8.10 or newer, preferably
 
-The server uses PySpark (along with pandas) to communicate with the data lake. It is included in `requirements.txt`.
+The server uses PySpark to communicate with the data lake. It is included in `requirements.txt`.
 
-## Environment veriables
-Some environment variables have to be set in order to correctly setup PySpark to connect to a remote Spark master.
+## Environment variables
 
-- **INGEST_SPARK_MASTER**: the link to the Spark master (default: `local`). In roder to specify a remote master, provide a link like `spark://<MASTER_HOST>:<MASTER_PORT>`
-- **SPARK_LOCAL_IP**: the Spark master may not find the API host with the default IP, so an accessible IP should be set
-- **PYSPARK_PYTHON**: the location of the Python interpreter. This location has to be the same for both the API machine and the remote Spark master host (this should be an issue if the API is within a virtual environment)
-
-Both Spark instances, the API's and the master's, should have the same version.
+| Name | Description | Examples | Default |
+|------|-------------|----------|---------|
+| INGEST_BASE_PATH | the path where the application should store the data | `hdfs://<IP>:<PORT>/` | `file:///tmp/` |
 
 ## Usage
 To run the server, please execute the following from the root directory:
