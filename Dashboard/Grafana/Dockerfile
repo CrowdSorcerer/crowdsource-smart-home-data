@@ -7,4 +7,4 @@ FROM grafana/grafana-oss:latest
 EXPOSE 3000
 
 # Copy a config file from your working directory
-COPY grafana.ini /etc/grafana/grafana.ini
+#COPY grafana.ini /etc/grafana/grafana.ini

@@ -6,9 +6,9 @@ rule_files:
   - alert.yml
 
 scrape_configs:
-  - job_name: node
-  # metrics_path defaults to '/metrics'
-  # scheme defaults to 'http'.
-
-  static_configs:
-    - targets: ['prometheus:9090']
+  - job_name: services
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - 'prometheus:9090'
+          - 'idonotexists:564'
