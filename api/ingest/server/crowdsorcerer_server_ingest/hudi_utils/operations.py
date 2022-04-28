@@ -7,7 +7,7 @@ from os import environ
 class HudiOperations:
 
     SPARK = SparkSession.builder.getOrCreate()
-    TABLE_NAME = 'hudi_ingest_api'
+    TABLE_NAME = 'hudi_ingestion'
     BASE_PATH = environ.get('INGEST_BASE_PATH', 'file:///tmp/') + 'hudi_ingestion/'
 
     TIMEZONE = timezone(timedelta(hours=0))
