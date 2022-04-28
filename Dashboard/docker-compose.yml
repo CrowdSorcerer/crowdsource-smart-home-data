@@ -8,7 +8,7 @@ services:
   prometheus:
     image: prom/prometheus:v2.30.3
     ports:
-      - 9000:9090
+      - 9090:9090
     volumes:
       - ./Prometheus:/etc/prometheus
       - prometheus-data:/prometheus
@@ -16,3 +16,6 @@ services:
 
 volumes:
   prometheus-data:
+
+networks:
+  monitoring:
