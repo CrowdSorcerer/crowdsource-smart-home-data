@@ -30,7 +30,7 @@ class HudiOperations:
     }
 
     @classmethod
-    def send_data(cls, datab: bytes, uuid: UUID):
+    def insert_data(cls, datab: bytes, uuid: UUID):
 
         data = uncompress_data(datab)
         

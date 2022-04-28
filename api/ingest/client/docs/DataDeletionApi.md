@@ -1,4 +1,4 @@
-# swagger_client.DataDeletionApi
+# crowdsorcerer_client.DataDeletionApi
 
 All URIs are relative to *https://smarthouse.av.it.pt/api/ingest*
 
@@ -15,12 +15,12 @@ Clear Home data linked to an UUID
 ```python
 from __future__ import print_function
 import time
-import swagger_client
-from swagger_client.rest import ApiException
+import crowdsorcerer_client
+from crowdsorcerer_client.rest import ApiException
 from pprint import pprint
 
 # create an instance of the API class
-api_instance = swagger_client.DataDeletionApi()
+api_instance = crowdsorcerer_client.DataDeletionApi()
 home_uuid = '38400000-8cf0-11bd-b23e-10b96e4ef00d' # str | This home's UUID
 
 try:

@@ -1,11 +1,12 @@
-from http.client import OK
 import connexion
 import six
 
-from swagger_server import util
-from swagger_server.exceptions import MalformedUUID
-from hudi_utils.operations import HudiOperations
+from crowdsorcerer_server_ingest import util
+from http.client import OK
+from crowdsorcerer_server_ingest.exceptions import MalformedUUID
+from crowdsorcerer_server_ingest.hudi_utils.operations import HudiOperations
 from uuid import UUID
+
 
 def data_deletion():  # noqa: E501
     """Clear Home data linked to an UUID
@@ -17,8 +18,8 @@ def data_deletion():  # noqa: E501
 
     :rtype: None
     """
-
-    home_uuid_str = connexion.request.headers.get('Home-UUID')
+    
+    home_uuid_str = connexion.request.headers.get('Home_UUID')
 
     try:
         home_uuid = UUID(home_uuid_str)

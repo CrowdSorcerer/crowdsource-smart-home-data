@@ -15,4 +15,4 @@ ENTRYPOINT ["python3"]
 
 ENV INGEST_BASE_PATH=local
 
-CMD ["-m", "swagger_server"]
+CMD ["-m", "crowdsorcerer_server_ingest"]

@@ -52,7 +52,7 @@ paths:
           description: Successfully uploaded the data
         default:
           description: Operation could not be carried out for an undefined reason
-      x-openapi-router-controller: swagger_server.controllers.data_upload_controller
+      x-openapi-router-controller: crowdsorcerer_server_ingest.controllers.data_upload_controller
     delete:
       tags:
       - data_deletion
@@ -73,7 +73,7 @@ paths:
           description: The data for the specified UUID is cleared from the platform
         default:
           description: Operation could not be carried out for an undefined reason
-      x-openapi-router-controller: swagger_server.controllers.data_deletion_controller
+      x-openapi-router-controller: crowdsorcerer_server_ingest.controllers.data_deletion_controller
 components:
   schemas: {}
   parameters:
