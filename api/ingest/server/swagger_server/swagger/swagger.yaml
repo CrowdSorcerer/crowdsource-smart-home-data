@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   title: CrowdSorcerer Ingest API
-  description: The Ingest API for data ingestion into the data lake (WIP).
+  description: The Ingest API for data ingestion into the data lake.
   license:
     name: GPLv3
     url: https://www.gnu.org/licenses/gpl-3.0.en.html

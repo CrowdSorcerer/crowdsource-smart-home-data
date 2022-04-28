@@ -31,6 +31,6 @@ setup(
     entry_points={
         'console_scripts': ['swagger_server=swagger_server.__main__:main']},
     long_description="""\
-    The Ingest API for data ingestion into the data lake (WIP).
+    The Ingest API for data ingestion into the data lake.
     """
 )

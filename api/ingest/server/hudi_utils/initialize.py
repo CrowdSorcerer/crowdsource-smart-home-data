@@ -10,8 +10,6 @@ def hudi_init():
         'org.apache.spark:spark-avro_2.12:3.1.2'
     ])
     
-        # .config(key='spark.shuffle.service.enabled', value=False) \
-        # .config(key='spark.dynamicAllocation.enabled', value=False) \
     # This SparkSession configuration will be present in the entire application, since SparkSession is a singleton
     SparkSession.builder \
         .config(key='spark.serializer', value='org.apache.spark.serializer.KryoSerializer') \

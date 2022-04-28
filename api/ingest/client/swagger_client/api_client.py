@@ -2,7 +2,7 @@
 """
     CrowdSorcerer Ingest API
 
-    The Ingest API for data ingestion into the data lake (WIP).  # noqa: E501
+    The Ingest API for data ingestion into the data lake.  # noqa: E501
 
     OpenAPI spec version: 0.0.1
     

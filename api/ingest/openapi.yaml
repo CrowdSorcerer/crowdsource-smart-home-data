@@ -3,7 +3,7 @@ x-original-swagger-version: '2.0'
 info:
     title: CrowdSorcerer Ingest API
     version: 0.0.1
-    description: The Ingest API for data ingestion into the data lake (WIP).
+    description: The Ingest API for data ingestion into the data lake.
     #termsOfService: 'http://swagger.io/terms/'
     license:
         name: 'GPLv3'
@@ -15,7 +15,7 @@ info:
 components:
     parameters:
         HomeUUID:
-            name: Home-UUID
+            name: Home_UUID
             in: header
             description: This home's UUID
             schema:
