@@ -15,7 +15,7 @@ f'''# TYPE {_name} {_type}
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--hudi_location')
+    parser.add_argument('--hudi-location')
     args = parser.parse_args()
     if not args.hudi_location:
         exit()

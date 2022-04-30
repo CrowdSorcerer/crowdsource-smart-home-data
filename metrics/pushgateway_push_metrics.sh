@@ -9,7 +9,7 @@ done < pushgateway_push_metrics.conf
 
 if [ -z "$job_name" \
     -o -z "$instance_name" \
-    -o -z "$hudi_host" \
+    -o -z "$hudi_address" \
     -o -z "$hudi_path" \
     -o -z "$pushgateway_host" \
     -o -z "$pushgateway_port" ]
@@ -17,7 +17,7 @@ then
     exit 1
 fi
 
-metrics=$(spark-submit --packages org.apache.hudi:hudi-spark3.1.2-bundle_2.12:0.10.1,org.apache.spark:spark-avro_2.12:3.1.2 hudi_metrics.py ${hudi_host}${hudi_path})
+metrics=$(spark-submit --packages org.apache.hudi:hudi-spark3.1.2-bundle_2.12:0.10.1,org.apache.spark:spark-avro_2.12:3.1.2 hudi_metrics.py --hudi-location ${hudi_address}${hudi_path})
 # Remove extra line of output that is present at the top
 metrics=$(echo "$metrics" | tail -n +2)
 
