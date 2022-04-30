@@ -23,3 +23,4 @@ fi
 cat <<EOF | curl --data-binary @- http://${pushgateway_host}:${pushgateway_port}/metrics/job/${job_name}/instance/${instance_name}
 ${metrics}
 EOF
+
