@@ -22,7 +22,7 @@ Some variable's values are specified outside of the script, in the `pushgateway_
 The following variables have to be defined:
 - **job_name**: the name of the Prometheus job
 - **instance_name**: the name of the instance that submitted these metrics
-- **hudi_host**: the HDFS where the Hudi table is hosted (for example, `hdfs://localhost:9000`)
-- **hudi_path**: the path appended to `hudi_host`, which points to the Hudi table to analyze
+- **hudi_address**: the HDFS where the Hudi table is hosted (for example, `hdfs://localhost:9000`)
+- **hudi_path**: the path appended to `hudi_address`, which points to the Hudi table to analyze
 - **pushgateway_host**: the host address of the Pushgateway server
 - **pushgateway_port**: the port of the Pushgateway server
