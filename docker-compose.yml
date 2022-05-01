@@ -1,0 +1,46 @@
+version: '2'
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.30.3
+    ports:
+      - 9090:9090
+    volumes:
+      - ./Dashboard/Prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+    command: --web.enable-lifecycle  --config.file=/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana
+    env_file: .env
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=$GF_SECURITY_ADMIN_PASSWORD
+      - GF_USERS_ALLOW_SIGN_UP=$GF_USERS_ALLOW_SIGN_UP
+      - GF_AUTH_ANONYMOUS_ENABLED=$GF_AUTH_ANONYMOUS_ENABLED
+    user: "472"
+    depends_on:
+      - prometheus
+    ports:
+      - 3000:3000
+    volumes:
+      - ./Dashboard/Grafana/provisioning/:/etc/grafana/provisioning/
+    restart: always
+
+  flask:
+    build: ./api/ingest/server
+    container_name: ingest_api
+    restart: always
+    environment:
+      - APP_NAME=Ingest_Api
+    expose:
+      - 8080
+
+  nginx:
+    build: ./api/nginx
+    container_name: nginx
+    restart: always
+    ports:
+      - "8080:80"
+
+volumes:
+  prometheus-data:
