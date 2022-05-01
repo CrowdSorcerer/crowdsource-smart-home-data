@@ -13,6 +13,6 @@ EXPOSE 8080
 
 ENTRYPOINT ["python3"]
 
-ENV INGEST_BASE_PATH=local
+ENV INGEST_BASE_PATH=file:///tmp
 
 CMD ["-m", "crowdsorcerer_server_ingest"]
