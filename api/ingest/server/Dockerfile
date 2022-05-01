@@ -1,14 +1,17 @@
-FROM alpine
+# YES I tried alpine, no i wont build my my own OS for this docker to work
+FROM ubuntu
 
-# Get bash
-RUN apk add --update --no-cache bash
+# Update and 
+RUN apt-get update
 
-# Get python and pip
-RUN apk add --update --no-cache python3 && ln -sf python3 /usr/bin/python
-RUN python3 -m ensurepip
+# Get python
+RUN apt-get -y install python3
+
+# Get pip
+RUN apt-get -y install python3-pip
 
 # Get java
-RUN apk add openjdk8
+RUN apt-get -y install openjdk-8-jre
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
@@ -21,8 +24,7 @@ COPY . /usr/src/app
 
 EXPOSE 8080
 
-ENTRYPOINT ["python3"]
-
 ENV INGEST_BASE_PATH=file:///tmp
 
-CMD ["-m", "crowdsorcerer_server_ingest"]
+# run the command to start uWSGI
+CMD ["uwsgi", "app.ini"]

@@ -25,11 +25,22 @@ services:
     volumes:
       - ./Dashboard/Grafana/provisioning/:/etc/grafana/provisioning/
     restart: always
-  
-  ingest_api:
+
+  flask:
     build: ./api/ingest/server
+    container_name: ingest_api
+    restart: always
+    environment:
+      - APP_NAME=Ingest_Api
+    expose:
+      - 8080
+
+  nginx:
+    build: ./api/nginx
+    container_name: nginx
+    restart: always
     ports:
-      - 8080:8080
+      - "8080:80"
 
 volumes:
   prometheus-data:
