@@ -9,6 +9,13 @@ services:
       - ./Dashboard/Prometheus:/etc/prometheus
       - prometheus-data:/prometheus
     command: --web.enable-lifecycle  --config.file=/etc/prometheus/prometheus.yml
+    depends_on:
+      - pushgateway
+
+  pushgateway:
+    image: prom/pushgateway
+    ports:
+      - 9091:9091
 
   grafana:
     image: grafana/grafana
