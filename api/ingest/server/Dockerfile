@@ -1,6 +1,12 @@
 # YES I tried alpine, no i wont build my my own OS for this docker to work
 FROM ubuntu
 
+# Set variable for snowfalke tzdata install
+ENV TZ=Europe/Lisbon
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+RUN export PYSPARK_PYTHON=$(which python3)
+
 # Update and 
 RUN apt-get update
 
