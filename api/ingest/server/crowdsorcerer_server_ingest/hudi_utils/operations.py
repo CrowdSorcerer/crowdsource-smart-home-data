@@ -8,7 +8,7 @@ class HudiOperations:
 
     SPARK = SparkSession.builder.getOrCreate()
     TABLE_NAME = 'hudi_ingestion'
-    BASE_PATH = environ.get('INGEST_BASE_PATH', 'file:///tmp/') + 'hudi_ingestion/'
+    BASE_PATH = environ.get('INGEST_BASE_PATH', 'file:///tmp') + '/hudi_ingestion'
 
     TIMEZONE = timezone(timedelta(hours=0))
 
@@ -46,6 +46,8 @@ class HudiOperations:
             data=[tuple(data.values())],
             schema=tuple(data.keys())
         )
+
+        print('Uploading data to', cls.BASE_PATH)
         df.write.format('hudi') \
             .options(**cls.HUDI_INSERT_OPTIONS) \
             .mode('append') \
@@ -71,6 +73,8 @@ class HudiOperations:
 
         deletes = list(map(lambda row: tuple(row), ds.collect()))
         df = cls.SPARK.sparkContext.parallelize(deletes).toDF(['uuid', 'path_year', 'path_month', 'path_week', 'path_weekday', 'path_hour']).withColumn('ts', lit(0.0))
+        
+        print('Deleting data from', cls.BASE_PATH)
         df.write.format('hudi') \
             .options(**cls.HUDI_DELETE_OPTIONS) \
             .mode('append') \

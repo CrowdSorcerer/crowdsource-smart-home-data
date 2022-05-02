@@ -5,8 +5,6 @@ FROM ubuntu
 ENV TZ=Europe/Lisbon
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-RUN export PYSPARK_PYTHON=$(which python3)
-
 # Update and 
 RUN apt-get update
 
@@ -25,6 +23,9 @@ WORKDIR /usr/src/app
 COPY requirements.txt /usr/src/app/
 
 RUN pip3 install --no-cache-dir -r requirements.txt
+
+# Set PySpark's Python path
+ENV PYSPARK_PYTHON=/usr/bin/python3
 
 COPY . /usr/src/app
 

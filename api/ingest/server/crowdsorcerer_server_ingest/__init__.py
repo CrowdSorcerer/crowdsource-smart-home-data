@@ -13,3 +13,7 @@ app.add_api('swagger.yaml', arguments={'title': 'CrowdSorcerer Ingest API'}, pyt
 
 # Exceptions
 app.add_error_handler(**MALFORMED_UUID)
+
+import os
+print('INGEST_BASE_PATH:', os.environ.get('INGEST_BASE_PATH'))
+print('PYSPARK_PYTHON:', os.environ.get('PYSPARK_PYTHON'))

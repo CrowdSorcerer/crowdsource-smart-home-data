@@ -39,6 +39,7 @@ services:
     restart: always
     environment:
       - APP_NAME=Ingest_Api
+      - INGEST_BASE_PATH=$INGEST_BASE_PATH
     expose:
       - 8080
 
