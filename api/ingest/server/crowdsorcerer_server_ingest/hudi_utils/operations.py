@@ -18,14 +18,25 @@ class HudiOperations:
         'hoodie.datasource.write.partitionpath.field': 'path_year,path_month,path_week,path_weekday,path_hour',
         'hoodie.datasource.write.table.name': TABLE_NAME,
         'hoodie.datasource.write.precombine.field': 'ts',
-        'hoodie.write.markers.type': 'direct'
+        'hoodie.write.markers.type': 'direct',
     }
 
-    HUDI_INSERT_OPTIONS = {**HUDI_BASE_OPTIONS,
-        'hoodie.datasource.write.operation': 'insert'
+    HUDI_METRICS_OPTIONS = {
+        'hoodie.metrics.on': True,
+        'hoodie.metrics.reporter.type': 'PROMETHEUS_PUSHGATEWAY',
+        'hoodie.metrics.pushgateway.host': environ.get('INGEST_PUSHGATEWAY_HOST', 'localhost'),
+        'hoodie.metrics.pushgateway.port': environ.get('INGEST_PUGHGATEWAY_PORT', '9091'),
+        'hoodie.metrics.pushgateway.delete.on.shutdown': False
     }
 
-    HUDI_DELETE_OPTIONS = {**HUDI_BASE_OPTIONS,
+    HUDI_INSERT_OPTIONS = {
+        **HUDI_BASE_OPTIONS,
+        **HUDI_METRICS_OPTIONS,
+        'hoodie.datasource.write.operation': 'insert',
+    }
+
+    HUDI_DELETE_OPTIONS = {
+        **HUDI_BASE_OPTIONS,
         'hoodie.datasource.write.operation': 'delete'
     }
 
@@ -47,7 +58,7 @@ class HudiOperations:
             schema=tuple(data.keys())
         )
 
-        print('Uploading data to', cls.BASE_PATH)
+        print('Inserting data into', cls.BASE_PATH)
         df.write.format('hudi') \
             .options(**cls.HUDI_INSERT_OPTIONS) \
             .mode('append') \

@@ -28,10 +28,14 @@ limiter = Limiter(app.app, \
     default_limits=['5 per hour'], \
     default_limits_per_method=True, \
     default_limits_exempt_when=lambda: DEBUG, \
+    headers_enabled=True, \
     storage_uri='memory://')
 
 
 
-print('Set INGEST_BASE_PATH:', environ.get('INGEST_BASE_PATH'))
-print('Set INGEST_DEBUG:', environ.get('INGEST_DEBUG'))
-print('Set PYSPARK_PYTHON:', environ.get('PYSPARK_PYTHON'))
+print('Environment variables set')
+print('INGEST_BASE_PATH:', environ.get('INGEST_BASE_PATH'))
+print('INGEST_DEBUG:', environ.get('INGEST_DEBUG'))
+print('INGEST_PUSHGATEWAY_HOST:', environ.get('INGEST_PUSHGATEWAY_HOST'))
+print('INGEST_PUSHGATEWAY_PORT:', environ.get('INGEST_PUSHGATEWAY_PORT'))
+print('PYSPARK_PYTHON:', environ.get('PYSPARK_PYTHON'))

@@ -31,7 +31,5 @@ COPY . /usr/src/app
 
 EXPOSE 8080
 
-ENV INGEST_BASE_PATH=file:///tmp
-
 # run the command to start uWSGI
 CMD ["uwsgi", "app.ini"]
