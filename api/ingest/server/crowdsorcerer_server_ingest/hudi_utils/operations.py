@@ -8,7 +8,7 @@ class HudiOperations:
 
     SPARK = SparkSession.builder.getOrCreate()
     TABLE_NAME = 'hudi_ingestion'
-    BASE_PATH = environ.get('INGEST_BASE_PATH', 'file:///tmp') + '/hudi_ingestion'
+    BASE_PATH = environ.get('INGEST_BASE_PATH', 'file:///tmp') + '/' + TABLE_NAME
 
     TIMEZONE = timezone(timedelta(hours=0))
 
@@ -63,10 +63,10 @@ class HudiOperations:
         cls.SPARK.read \
             .format('hudi') \
             .load(cls.BASE_PATH) \
-            .createOrReplaceTempView('hudi_trips_snapshot')
+            .createOrReplaceTempView('hudi_del_snapshot')
 
         # The uuid should be a valid UUID at this point
-        ds = cls.SPARK.sql(f'select uuid, path_year, path_month, path_week, path_weekday, path_hour from hudi_trips_snapshot where uuid="{uuid}"')
+        ds = cls.SPARK.sql(f'select uuid, path_year, path_month, path_week, path_weekday, path_hour from hudi_del_snapshot where uuid="{uuid}"')
         
         if ds.count() == 0:
             return

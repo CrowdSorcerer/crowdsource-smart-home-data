@@ -40,6 +40,7 @@ services:
     environment:
       - APP_NAME=Ingest_Api
       - INGEST_BASE_PATH=$INGEST_BASE_PATH
+      - INGEST_DEBUG=${INGEST_DEBUG:-false}
     expose:
       - 8080
 

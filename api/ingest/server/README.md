@@ -16,6 +16,7 @@ The server uses PySpark to communicate with the data lake. It is included in `re
 | Name | Description | Examples | Default |
 |------|-------------|----------|---------|
 | INGEST_BASE_PATH | the path where the application should store the data | `hdfs://<IP>:<PORT>/` | `file:///tmp/` |
+| INGEST_DEBUG | whether or not to load the application in the debug/development environment | `true` | `false` |
 
 ## Usage
 To run the server, please execute the following from the root directory:
@@ -54,3 +55,8 @@ docker build -t crowdsorcerer_server_ingest .
 # starting up a container
 docker run -p 8080:8080 crowdsorcerer_server_ingest
 ```
+
+## Debug environment
+
+In the debug environment set by the `INGEST_DEBUG` environment variable, the application has the following characteristics:
+- No rate limiting
