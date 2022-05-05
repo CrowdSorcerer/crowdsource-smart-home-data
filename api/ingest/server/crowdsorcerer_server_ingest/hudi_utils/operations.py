@@ -1,8 +1,15 @@
+import zlib
+import json
+from datetime import datetime, timezone, timedelta
+from os import environ
+from uuid import UUID
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import lit
-from datetime import datetime, timezone, timedelta
-from uuid import UUID
-from os import environ
+
+from crowdsorcerer_server_ingest.exceptions import BadIngestDecoding
+
+
 
 class HudiOperations:
 
@@ -15,7 +22,7 @@ class HudiOperations:
     HUDI_BASE_OPTIONS = {
         'hoodie.table.name': TABLE_NAME,
         'hoodie.datasource.write.recordkey.field': 'uuid',
-        'hoodie.datasource.write.partitionpath.field': 'path_year,path_month,path_week,path_weekday,path_hour',
+        'hoodie.datasource.write.partitionpath.field': 'path_year,path_month,path_day,path_hour',
         'hoodie.datasource.write.table.name': TABLE_NAME,
         'hoodie.datasource.write.precombine.field': 'ts',
         'hoodie.write.markers.type': 'direct',
@@ -43,13 +50,17 @@ class HudiOperations:
     @classmethod
     def insert_data(cls, datab: bytes, uuid: UUID):
 
-        data = uncompress_data(datab)
+        try:
+            data = decompress_data(datab)
+        except Exception:
+            raise BadIngestDecoding()
         
         data['uuid'] = str(uuid)
         
         dt = datetime.now(tz=cls.TIMEZONE)
-        data['path_year'], data['path_week'], data['path_weekday'] = dt.isocalendar()
+        data['path_year'] = dt.year
         data['path_month'] = dt.month
+        data['path_day'] = dt.day
         data['path_hour'] = dt.hour
         data['ts'] = dt.timestamp()
 
@@ -93,6 +104,8 @@ class HudiOperations:
     
 
 
-# TODO: What's the compression used here? Will we even need to use this?
-def uncompress_data(data: bytes) -> dict:
-    return {'data': data}
+# Compression used: JSON -> UTF-8 encode -> zlib
+def decompress_data(data: bytes) -> dict:
+    data = zlib.decompress(data)
+    data = data.decode(encoding='utf-8')
+    return json.loads(data)

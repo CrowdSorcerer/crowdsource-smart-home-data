@@ -1,13 +1,13 @@
-import connexion
-
 from os import environ
 from distutils.util import strtobool
-from crowdsorcerer_server_ingest import encoder
+
+import connexion
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
+from crowdsorcerer_server_ingest import encoder
 from .hudi_utils.initialize import hudi_init
-from .exceptions import MALFORMED_UUID
+from .exceptions import *
 
 
 
@@ -21,6 +21,7 @@ app.add_api('swagger.yaml', arguments={'title': 'CrowdSorcerer Ingest API'}, pyt
 
 # Exceptions
 app.add_error_handler(**MALFORMED_UUID)
+app.add_error_handler(**BAD_INGEST_DECODING)
 
 # Set up rate limiter
 limiter = Limiter(app.app, \
