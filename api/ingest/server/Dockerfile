@@ -1,11 +1,11 @@
 # YES I tried alpine, no i wont build my my own OS for this docker to work
 FROM ubuntu
 
-# Set variable for snowfalke tzdata install
+# Set variable for snowflake tzdata install
 ENV TZ=Europe/Lisbon
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-# Update and 
+# Update system
 RUN apt-get update
 
 # Get python
