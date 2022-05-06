@@ -27,11 +27,15 @@ services:
     user: "472"
     depends_on:
       - prometheus
-    ports:
-      - 3000:3000
     volumes:
       - ./Dashboard/Grafana/provisioning/:/etc/grafana/provisioning/
     restart: always
+    expose:
+      - 3000
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"
+      - "traefik.backend=grafana"
 
   flask:
     build: ./api/ingest/server
@@ -44,14 +48,27 @@ services:
       - INGEST_PUSHGATEWAY_HOST=pushgateway
       - INGEST_PUSHGATEWAY_PORT=9091
     expose:
-      - 8080
+      - 8443
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ingest.rule=Host(`ingest.localhost`)"
 
-  nginx:
-    build: ./api/nginx
-    container_name: nginx
-    restart: always
+  reverse-proxy:
+    image: traefik
+    # Enables the web UI and tells Traefik to listen to docker
+    command: 
+      #- "--api.insecure=true"
+      - "--providers.docker"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
-      - "8080:443"
+      - "80:80"
+      # The Web UI (enabled by --api.insecure=true)
+      #- "8080:8080"
+    depends_on:
+      - flask
+      - grafana
 
 volumes:
   prometheus-data:
