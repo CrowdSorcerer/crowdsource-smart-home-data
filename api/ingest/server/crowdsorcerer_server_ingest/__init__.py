@@ -24,13 +24,13 @@ app.add_error_handler(**MALFORMED_UUID)
 app.add_error_handler(**BAD_INGEST_DECODING)
 
 # Set up rate limiter
-limiter = Limiter(app.app, \
-    key_func=get_remote_address, \
-    default_limits=['5 per hour'], \
-    default_limits_per_method=True, \
-    default_limits_exempt_when=lambda: True, \
-    headers_enabled=True, \
-    storage_uri='memory://')
+# limiter = Limiter(app.app, \
+#     key_func=get_remote_address, \
+#     default_limits=['5 per hour'], \
+#     default_limits_per_method=True, \
+#     default_limits_exempt_when=lambda: True, \
+#     headers_enabled=True, \
+#     storage_uri='memory://')
 
 
 
