@@ -1,13 +1,11 @@
 # YES I tried alpine, no i wont build my my own OS for this docker to work
 FROM ubuntu
 
-# Set variable for snowfalke tzdata install
+# Set variable for snowflake tzdata install
 ENV TZ=Europe/Lisbon
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-RUN export PYSPARK_PYTHON=$(which python3)
-
-# Update and 
+# Update system
 RUN apt-get update
 
 # Get python
@@ -26,11 +24,12 @@ COPY requirements.txt /usr/src/app/
 
 RUN pip3 install --no-cache-dir -r requirements.txt
 
+# Set PySpark's Python path
+ENV PYSPARK_PYTHON=/usr/bin/python3
+
 COPY . /usr/src/app
 
 EXPOSE 8080
-
-ENV INGEST_BASE_PATH=file:///tmp
 
 # run the command to start uWSGI
 CMD ["uwsgi", "app.ini"]

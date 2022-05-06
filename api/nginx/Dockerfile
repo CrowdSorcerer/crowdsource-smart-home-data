@@ -6,3 +6,6 @@ RUN rm /etc/nginx/conf.d/default.conf
 
 # Replace with our own nginx.conf
 COPY nginx.conf /etc/nginx/conf.d/
+
+# Generate certificates
+RUN openssl req -x509 -newkey rsa:4096 -nodes -out /etc/nginx/cert.pem -keyout /etc/nginx/key.pem -days 365 -subj '/CN=localhost'

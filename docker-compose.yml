@@ -39,6 +39,10 @@ services:
     restart: always
     environment:
       - APP_NAME=Ingest_Api
+      - INGEST_BASE_PATH=$INGEST_BASE_PATH
+      - INGEST_DEBUG=${INGEST_DEBUG:-false}
+      - INGEST_PUSHGATEWAY_HOST=pushgateway
+      - INGEST_PUSHGATEWAY_PORT=9091
     expose:
       - 8080
 
@@ -47,7 +51,7 @@ services:
     container_name: nginx
     restart: always
     ports:
-      - "8080:80"
+      - "8080:443"
 
 volumes:
   prometheus-data:

@@ -27,6 +27,7 @@
 crowdsorcerer_server_ingest/controllers/data_deletion_controller.py
 crowdsorcerer_server_ingest/controllers/data_upload_controller.py
 crowdsorcerer_server_ingest/__main__.py
+crowdsorcerer_server_ingest/__init__.py
 requirements.txt
 Dockerfile
 README.md
