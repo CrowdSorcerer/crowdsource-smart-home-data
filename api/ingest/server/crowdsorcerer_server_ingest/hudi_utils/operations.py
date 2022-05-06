@@ -22,7 +22,7 @@ class HudiOperations:
     HUDI_BASE_OPTIONS = {
         'hoodie.table.name': TABLE_NAME,
         'hoodie.datasource.write.recordkey.field': 'uuid',
-        'hoodie.datasource.write.partitionpath.field': 'path_year,path_month,path_day,path_hour',
+        'hoodie.datasource.write.partitionpath.field': 'path_year,path_month,path_day',
         'hoodie.datasource.write.table.name': TABLE_NAME,
         'hoodie.datasource.write.precombine.field': 'ts',
         'hoodie.write.markers.type': 'direct',
@@ -61,7 +61,6 @@ class HudiOperations:
         data['path_year'] = dt.year
         data['path_month'] = dt.month
         data['path_day'] = dt.day
-        data['path_hour'] = dt.hour
         data['ts'] = dt.timestamp()
 
         df = cls.SPARK.createDataFrame(
@@ -88,13 +87,13 @@ class HudiOperations:
             .createOrReplaceTempView('hudi_del_snapshot')
 
         # The uuid should be a valid UUID at this point
-        ds = cls.SPARK.sql(f'select uuid, path_year, path_month, path_week, path_weekday, path_hour from hudi_del_snapshot where uuid="{uuid}"')
+        ds = cls.SPARK.sql(f'select uuid, path_year, path_month, path_day from hudi_del_snapshot where uuid="{uuid}"')
         
         if ds.count() == 0:
             return
 
         deletes = list(map(lambda row: tuple(row), ds.collect()))
-        df = cls.SPARK.sparkContext.parallelize(deletes).toDF(['uuid', 'path_year', 'path_month', 'path_week', 'path_weekday', 'path_hour']).withColumn('ts', lit(0.0))
+        df = cls.SPARK.sparkContext.parallelize(deletes).toDF(['uuid', 'path_year', 'path_month', 'path_day']).withColumn('ts', lit(0.0))
         
         print('Deleting data from', cls.BASE_PATH)
         df.write.format('hudi') \
