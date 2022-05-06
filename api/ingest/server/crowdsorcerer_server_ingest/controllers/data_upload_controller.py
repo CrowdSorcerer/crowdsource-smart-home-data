@@ -21,7 +21,7 @@ def data_upload(body):  # noqa: E501
     :rtype: None
     """
     
-    home_uuid_str = connexion.request.headers.get('Home-UUID')
+    home_uuid_str = connexion.request.headers.get('Home_UUID')
 
     try:
         home_uuid = UUID(home_uuid_str)
