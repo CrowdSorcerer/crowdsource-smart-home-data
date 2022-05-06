@@ -36,6 +36,9 @@ services:
       - traefik.enable=true
       - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"
       - "traefik.backend=grafana"
+      - "traefik.http.routers.grafana-secure.entrypoints=websecure"
+      - "traefik.http.routers.grafana-secure.rule=Host(`grafana.localhost`)"
+      - "traefik.http.routers.grafana-secure.tls=true"
 
   flask:
     build: ./api/ingest/server
@@ -52,6 +55,9 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ingest.rule=Host(`ingest.localhost`)"
+      - "traefik.http.routers.ingest-secure.entrypoints=websecure"
+      - "traefik.http.routers.ingest-secure.rule=Host(`ingest.localhost`)"
+      - "traefik.http.routers.ingest-secure.tls=true"
 
   reverse-proxy:
     image: traefik
@@ -59,16 +65,29 @@ services:
     command: 
       #- "--api.insecure=true"
       - "--providers.docker"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.teeresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.teeresolver.acme.email=me@gmail.com"
     volumes:
       # So that Traefik can listen to the Docker events
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik_certs:/certs
+      - ./traefik_conf:/conf
     ports:
+      # The HTTP port
       - "80:80"
+      # The HTTPS port
+      - "443:443"
       # The Web UI (enabled by --api.insecure=true)
       #- "8080:8080"
     depends_on:
       - flask
       - grafana
+    labels:
+      - "traefik.http.routers.traefik.tls=true"
+      - "traefik.http.routers.traefik.tls.certresolver=letsencryptresolver"
 
 volumes:
   prometheus-data:
