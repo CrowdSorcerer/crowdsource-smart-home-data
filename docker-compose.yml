@@ -34,10 +34,10 @@ services:
       - 3000
     labels:
       - traefik.enable=true
-      - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"
+      - "traefik.http.routers.grafana.rule=Host(`dashboard.smarthouse.av.it.pt`)"
       - "traefik.backend=grafana"
       - "traefik.http.routers.grafana-secure.entrypoints=websecure"
-      - "traefik.http.routers.grafana-secure.rule=Host(`grafana.localhost`)"
+      - "traefik.http.routers.grafana-secure.rule=Host(`dashboard.smarthouse.av.it.pt`)"
       - "traefik.http.routers.grafana-secure.tls=true"
 
   flask:
@@ -54,16 +54,16 @@ services:
       - 8443
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.ingest.rule=Host(`ingest.localhost`)"
+      - "traefik.http.routers.ingest.rule=Host(`ingest.smarthouse.av.it.pt`)"
       - "traefik.http.routers.ingest-secure.entrypoints=websecure"
-      - "traefik.http.routers.ingest-secure.rule=Host(`ingest.localhost`)"
+      - "traefik.http.routers.ingest-secure.rule=Host(`ingest.smarthouse.av.it.pt`)"
       - "traefik.http.routers.ingest-secure.tls=true"
 
   reverse-proxy:
     image: traefik
     # Enables the web UI and tells Traefik to listen to docker
     command: 
-      #- "--api.insecure=true"
+      #- "--api.insecure=true" # DONT
       - "--providers.docker"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
@@ -81,7 +81,7 @@ services:
       # The HTTPS port
       - "443:443"
       # The Web UI (enabled by --api.insecure=true)
-      #- "8080:8080"
+      #- "8080:8080"             # DONT
     depends_on:
       - flask
       - grafana
