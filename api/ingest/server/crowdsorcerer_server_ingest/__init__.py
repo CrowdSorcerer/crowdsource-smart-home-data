@@ -28,7 +28,7 @@ limiter = Limiter(app.app, \
     key_func=get_remote_address, \
     default_limits=['5 per hour'], \
     default_limits_per_method=True, \
-    default_limits_exempt_when=lambda: DEBUG, \
+    default_limits_exempt_when=lambda: True, \
     headers_enabled=True, \
     storage_uri='memory://')
 
