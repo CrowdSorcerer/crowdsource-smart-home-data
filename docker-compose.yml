@@ -1,4 +1,4 @@
-version: '2'
+version: '3'
 
 services:
   prometheus:
@@ -27,11 +27,18 @@ services:
     user: "472"
     depends_on:
       - prometheus
-    ports:
-      - 3000:3000
     volumes:
       - ./Dashboard/Grafana/provisioning/:/etc/grafana/provisioning/
     restart: always
+    expose:
+      - 3000
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.grafana.rule=Host(`dashboard.smarthouse.av.it.pt`)"
+      - "traefik.backend=grafana"
+      - "traefik.http.routers.grafana-secure.entrypoints=websecure"
+      - "traefik.http.routers.grafana-secure.rule=Host(`dashboard.smarthouse.av.it.pt`)"
+      - "traefik.http.routers.grafana-secure.tls=true"
 
   flask:
     build: ./api/ingest/server
@@ -40,18 +47,47 @@ services:
     environment:
       - APP_NAME=Ingest_Api
       - INGEST_BASE_PATH=$INGEST_BASE_PATH
-      - INGEST_DEBUG=${INGEST_DEBUG:-false}
+      - INGEST_DEBUG=${INGEST_DEBUG-false}
       - INGEST_PUSHGATEWAY_HOST=pushgateway
       - INGEST_PUSHGATEWAY_PORT=9091
     expose:
-      - 8080
+      - 8443
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ingest.rule=Host(`ingest.smarthouse.av.it.pt`)"
+      - "traefik.http.routers.ingest-secure.entrypoints=websecure"
+      - "traefik.http.routers.ingest-secure.rule=Host(`ingest.smarthouse.av.it.pt`)"
+      - "traefik.http.routers.ingest-secure.tls=true"
 
-  nginx:
-    build: ./api/nginx
-    container_name: nginx
-    restart: always
+  reverse-proxy:
+    image: traefik
+    # Enables the web UI and tells Traefik to listen to docker
+    command: 
+      #- "--api.insecure=true" # DONT
+      - "--providers.docker"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.teeresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.teeresolver.acme.email=me@gmail.com"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik_certs:/certs
+      - ./traefik_conf:/conf
     ports:
-      - "8080:443"
+      # The HTTP port
+      - "80:80"
+      # The HTTPS port
+      - "443:443"
+      # The Web UI (enabled by --api.insecure=true)
+      #- "8080:8080"             # DONT
+    depends_on:
+      - flask
+      - grafana
+    labels:
+      - "traefik.http.routers.traefik.tls=true"
+      - "traefik.http.routers.traefik.tls.certresolver=letsencryptresolver"
 
 volumes:
   prometheus-data:

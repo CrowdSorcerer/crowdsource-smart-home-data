@@ -64,4 +64,4 @@ docker run -p 8080:8080 crowdsorcerer_server_ingest
 ## Debug environment
 
 In the debug environment set by the `INGEST_DEBUG` environment variable, the application has the following characteristics:
-- No rate limiting
+- No rate limiting (it's always deactivated anyway, at least for now)

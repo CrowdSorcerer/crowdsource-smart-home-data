@@ -33,6 +33,8 @@ class HudiOperations:
         'hoodie.metrics.reporter.type': 'PROMETHEUS_PUSHGATEWAY',
         'hoodie.metrics.pushgateway.host': environ.get('INGEST_PUSHGATEWAY_HOST', 'localhost'),
         'hoodie.metrics.pushgateway.port': environ.get('INGEST_PUGHGATEWAY_PORT', '9091'),
+        'hoodie.metrics.pushgateway.job.name': 'hudi_job',
+        'hoodie.metrics.pushgateway.random.job.name.suffix': False,
         'hoodie.metrics.pushgateway.delete.on.shutdown': False
     }
 
