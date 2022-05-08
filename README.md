@@ -9,12 +9,17 @@ docker-compose up --build
 
 ### Ingest API ui
 ```
-http://smarthouse.av.it.pt/api/ingest/ui/
+https://smarthouse.av.it.pt/api/ingest/ui/
+```
+
+### Export API ui
+```
+https://smarthouse.av.it.pt/api/export/ui/
 ```
 
 ### Grafana ui
 ```
-http://smarthouse.av.it.pt/
+https://smarthouse.av.it.pt/
 ```
 
 ### Prometheus ui
