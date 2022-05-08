@@ -34,13 +34,12 @@ services:
       - 3000
     labels:
       - traefik.enable=true
-      - "traefik.http.routers.grafana.rule=Host(`dashboard.smarthouse.av.it.pt`)"
       - "traefik.backend=grafana"
-      - "traefik.http.routers.grafana-secure.entrypoints=websecure"
-      - "traefik.http.routers.grafana-secure.rule=Host(`dashboard.smarthouse.av.it.pt`)"
-      - "traefik.http.routers.grafana-secure.tls=true"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.rule=Host(`smarthouse.av.it.pt`)"
+      - "traefik.http.routers.grafana.tls=true"
 
-  flask:
+  ingest:
     build: ./api/ingest/server
     container_name: ingest_api
     restart: always
@@ -54,10 +53,9 @@ services:
       - 8443
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.ingest.rule=Host(`ingest.smarthouse.av.it.pt`)"
-      - "traefik.http.routers.ingest-secure.entrypoints=websecure"
-      - "traefik.http.routers.ingest-secure.rule=Host(`ingest.smarthouse.av.it.pt`)"
-      - "traefik.http.routers.ingest-secure.tls=true"
+      - "traefik.http.routers.ingest.entrypoints=websecure"
+      - "traefik.http.routers.ingest.rule=Host(`smarthouse.av.it.pt`) && Path(`/ingest`)"
+      - "traefik.http.routers.ingest.tls=true"
 
   reverse-proxy:
     image: traefik
@@ -67,6 +65,8 @@ services:
       - "--providers.docker"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.teeresolver.acme.tlschallenge=true"
       - "--certificatesresolvers.teeresolver.acme.email=me@gmail.com"
@@ -83,7 +83,7 @@ services:
       # The Web UI (enabled by --api.insecure=true)
       #- "8080:8080"             # DONT
     depends_on:
-      - flask
+      - ingest
       - grafana
     labels:
       - "traefik.http.routers.traefik.tls=true"
