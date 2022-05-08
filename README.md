@@ -9,12 +9,12 @@ docker-compose up --build
 
 ### Ingest API ui
 ```
-http://localhost:8080/api/ingest/ui/
+http://smarthouse.av.it.pt/api/ingest/ui/
 ```
 
 ### Grafana ui
 ```
-http://localhost:3000/
+http://smarthouse.av.it.pt/
 ```
 
 ### Prometheus ui

@@ -54,7 +54,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ingest.entrypoints=websecure"
-      - "traefik.http.routers.ingest.rule=Host(`smarthouse.av.it.pt`) && Path(`/ingest`)"
+      - "traefik.http.routers.ingest.rule=Host(`smarthouse.av.it.pt`) && PathPrefix(`/api/ingest`)"
       - "traefik.http.routers.ingest.tls=true"
 
   reverse-proxy:
