@@ -24,7 +24,6 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 2,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -107,7 +106,9 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "rate(hudi_ingestion_commit_commitTime{exported_job=\"hudi_job\", job=\"pushgateway\"}[5m])",
+          "editorMode": "code",
+          "expr": "rate(ingest_count_total[5m])",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -387,6 +388,6 @@
   "timezone": "",
   "title": "Data lake status",
   "uid": "lUdlXfl7k",
-  "version": 2,
+  "version": 1,
   "weekStart": ""
 }

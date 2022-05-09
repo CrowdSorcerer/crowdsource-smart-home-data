@@ -6,6 +6,7 @@ from uuid import UUID
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import lit
+from prometheus_client import CollectorRegistry, Counter, push_to_gateway
 
 from crowdsorcerer_server_ingest.exceptions import BadIngestDecoding
 
@@ -19,6 +20,9 @@ class HudiOperations:
 
     TIMEZONE = timezone(timedelta(hours=0))
 
+    PUSHGATEWAY_HOST = environ.get('INGEST_PUSHGATEWAY_HOST', 'localhost')
+    PUSHGATEWAY_PORT = environ.get('INGEST_PUSHGATEWAY_PORT', '9091')
+
     HUDI_BASE_OPTIONS = {
         'hoodie.table.name': TABLE_NAME,
         'hoodie.datasource.write.recordkey.field': 'uuid',
@@ -31,8 +35,8 @@ class HudiOperations:
     HUDI_METRICS_OPTIONS = {
         'hoodie.metrics.on': True,
         'hoodie.metrics.reporter.type': 'PROMETHEUS_PUSHGATEWAY',
-        'hoodie.metrics.pushgateway.host': environ.get('INGEST_PUSHGATEWAY_HOST', 'localhost'),
-        'hoodie.metrics.pushgateway.port': environ.get('INGEST_PUGHGATEWAY_PORT', '9091'),
+        'hoodie.metrics.pushgateway.host': PUSHGATEWAY_HOST,
+        'hoodie.metrics.pushgateway.port': PUSHGATEWAY_PORT,
         'hoodie.metrics.pushgateway.job.name': 'hudi_job',
         'hoodie.metrics.pushgateway.random.job.name.suffix': False,
         'hoodie.metrics.pushgateway.delete.on.shutdown': False
@@ -40,7 +44,7 @@ class HudiOperations:
 
     HUDI_INSERT_OPTIONS = {
         **HUDI_BASE_OPTIONS,
-        **HUDI_METRICS_OPTIONS,
+        #**HUDI_METRICS_OPTIONS,
         'hoodie.datasource.write.operation': 'insert',
     }
 
@@ -48,6 +52,9 @@ class HudiOperations:
         **HUDI_BASE_OPTIONS,
         'hoodie.datasource.write.operation': 'delete'
     }
+
+    REGISTRY = CollectorRegistry()
+    INGEST_COUNTER = Counter('ingest_count', 'Number of ingestion (data upload) requests that have been successfully made.', registry=REGISTRY)
 
     @classmethod
     def insert_data(cls, datab: bytes, uuid: UUID):
@@ -75,6 +82,11 @@ class HudiOperations:
             .options(**cls.HUDI_INSERT_OPTIONS) \
             .mode('append') \
             .save(cls.BASE_PATH)
+
+        cls.INGEST_COUNTER.inc()
+        push_to_gateway(f'{cls.PUSHGATEWAY_HOST}:{cls.PUSHGATEWAY_PORT}', job='ingestion_job', registry=cls.REGISTRY)
+
+
 
     @classmethod
     def delete_data(cls, uuid: UUID):

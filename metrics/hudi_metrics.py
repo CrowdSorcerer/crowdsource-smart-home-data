@@ -11,7 +11,7 @@ def main(spark, hudi_location):
     # TODO: watch out for privacy concerns
 
     n_users = df.select('uuid').distinct().count()
-    print_metric('data_lake_users', 'gauge', 'The ammount of users on the platform at the moment', n_users)
+    print_metric('data_lake_users', 'gauge', 'The amount of users on the platform at the moment', n_users)
 
     max_days_without_upload = 30
     minimum_dt = datetime.fromtimestamp( datetime.now() - max_days_without_upload*60*60*24 )
