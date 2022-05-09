@@ -14,7 +14,7 @@ def main(spark, hudi_location):
     print_metric('data_lake_users', 'gauge', 'The amount of users on the platform at the moment', n_users)
 
     max_days_without_upload = 30
-    minimum_dt = datetime.fromtimestamp( datetime.now() - max_days_without_upload*60*60*24 )
+    minimum_dt = datetime.fromtimestamp( datetime.now().timestamp() - max_days_without_upload*60*60*24 )
     n_discontinued = df.select('uuid', 'path_year', 'path_month', 'path_day').where(f'path_year<{minimum_dt.year} OR (path_year={minimum_dt.year} AND path_month<{minimum_dt.month}) OR (path_year={minimum_dt.year} AND path_month={minimum_dt.month} AND path_day<{minimum_dt.day})').count()
     print_metric('data_lake_discontinued', 'gauge', f'The amount of discontinued data uploads (more than {max_days_without_upload} without upload)', n_discontinued)
 
