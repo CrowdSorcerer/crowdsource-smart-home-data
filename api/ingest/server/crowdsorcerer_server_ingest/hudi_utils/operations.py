@@ -3,6 +3,7 @@ import json
 from datetime import datetime, timezone, timedelta
 from os import environ
 from uuid import UUID
+from urllib.error import URLError
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import lit
@@ -84,7 +85,10 @@ class HudiOperations:
             .save(cls.BASE_PATH)
 
         cls.INGEST_COUNTER.inc()
-        push_to_gateway(f'{cls.PUSHGATEWAY_HOST}:{cls.PUSHGATEWAY_PORT}', job='ingestion_job', registry=cls.REGISTRY)
+        try:
+            push_to_gateway(f'{cls.PUSHGATEWAY_HOST}:{cls.PUSHGATEWAY_PORT}', job='ingestion_job', registry=cls.REGISTRY)
+        except URLError:
+            print('Could not push metrics to the Pushgateway server')
 
 
 
