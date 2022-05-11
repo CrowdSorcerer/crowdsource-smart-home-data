@@ -32,7 +32,7 @@ paths:
                         schema:
                             type: string
                             format: binary
-                            description: The data extracted by the Home Assitant Aggregator, to be uploaded to the data lake 
+                            description: The data extracted by the Home Assitant Aggregator, to be uploaded to the data lake. This corresponds to an encoded JSON string compressed with `zlib` (encoding is UTF-8). 
                 description: The Home data to be uploaded
                 required: true
             parameters:
