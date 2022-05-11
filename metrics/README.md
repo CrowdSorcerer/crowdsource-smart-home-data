@@ -26,3 +26,13 @@ The following variables have to be defined:
 - **hudi_path**: the path appended to `hudi_address`, which points to the Hudi table to analyze
 - **pushgateway_host**: the host address of the Pushgateway server
 - **pushgateway_port**: the port of the Pushgateway server
+
+Example file:
+```
+job_name=example_job
+instance_name=example_intance
+hudi_address=hdfs://localhost:9000
+hudi_path=/tmp/hudi_trips_cow
+pushgateway_host=localhost
+pushgateway_port=9091
+```

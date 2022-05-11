@@ -1,3 +1,4 @@
 swagger-codegen-cli.jar
 **/venv
+metrics/*.conf
 .env
