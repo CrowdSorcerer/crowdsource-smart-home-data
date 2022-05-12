@@ -22,9 +22,9 @@ import tempfile
 import six
 from six.moves.urllib.parse import quote
 
-from crowdsorcerer_client.configuration import Configuration
-import crowdsorcerer_client.models
-from crowdsorcerer_client import rest
+from crowdsorcerer_client_ingest.configuration import Configuration
+import crowdsorcerer_client_ingest.models
+from crowdsorcerer_client_ingest import rest
 
 
 class ApiClient(object):
@@ -257,7 +257,7 @@ class ApiClient(object):
             if klass in self.NATIVE_TYPES_MAPPING:
                 klass = self.NATIVE_TYPES_MAPPING[klass]
             else:
-                klass = getattr(crowdsorcerer_client.models, klass)
+                klass = getattr(crowdsorcerer_client_ingest.models, klass)
 
         if klass in self.PRIMITIVE_TYPES:
             return self.__deserialize_primitive(data, klass)

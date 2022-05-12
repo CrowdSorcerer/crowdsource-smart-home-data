@@ -15,9 +15,9 @@
 from __future__ import absolute_import
 
 # import apis into sdk package
-from crowdsorcerer_client.api.data_deletion_api import DataDeletionApi
-from crowdsorcerer_client.api.data_upload_api import DataUploadApi
+from crowdsorcerer_client_ingest.api.data_deletion_api import DataDeletionApi
+from crowdsorcerer_client_ingest.api.data_upload_api import DataUploadApi
 # import ApiClient
-from crowdsorcerer_client.api_client import ApiClient
-from crowdsorcerer_client.configuration import Configuration
+from crowdsorcerer_client_ingest.api_client import ApiClient
+from crowdsorcerer_client_ingest.configuration import Configuration
 # import models into sdk package
