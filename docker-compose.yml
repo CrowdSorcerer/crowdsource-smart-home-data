@@ -30,14 +30,8 @@ services:
     volumes:
       - ./Dashboard/Grafana/provisioning/:/etc/grafana/provisioning/
     restart: always
-    expose:
-      - 3000
-    labels:
-      - traefik.enable=true
-      - "traefik.backend=grafana"
-      - "traefik.http.routers.grafana.entrypoints=websecure"
-      - "traefik.http.routers.grafana.rule=Host(`smarthouse.av.it.pt`)"
-      - "traefik.http.routers.grafana.tls=true"
+    ports:
+      - 3000:3000
 
   ingest:
     build: ./api/ingest/server
@@ -84,7 +78,6 @@ services:
       #- "8080:8080"             # DONT
     depends_on:
       - ingest
-      - grafana
     labels:
       - "traefik.http.routers.traefik.tls=true"
       - "traefik.http.routers.traefik.tls.certresolver=letsencryptresolver"
