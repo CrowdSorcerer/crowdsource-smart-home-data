@@ -1,0 +1,93 @@
+version: '3'
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.30.3
+    ports:
+      - 9090:9090
+    volumes:
+      - ./Dashboard/Prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+    command: --web.enable-lifecycle  --config.file=/etc/prometheus/prometheus.yml
+    depends_on:
+      - pushgateway
+
+  pushgateway:
+    image: prom/pushgateway
+    ports:
+      - 9091:9091
+
+  grafana:
+    image: grafana/grafana
+    env_file: .env
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=$GF_SECURITY_ADMIN_PASSWORD
+      - GF_USERS_ALLOW_SIGN_UP=$GF_USERS_ALLOW_SIGN_UP
+      - GF_AUTH_ANONYMOUS_ENABLED=$GF_AUTH_ANONYMOUS_ENABLED
+    user: "472"
+    depends_on:
+      - prometheus
+    volumes:
+      - ./Dashboard/Grafana/provisioning/:/etc/grafana/provisioning/
+    restart: always
+    expose:
+      - 3000
+    labels:
+      - traefik.enable=true
+      - "traefik.backend=grafana"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.rule=Host(`smarthouse.av.it.pt`)"
+      - "traefik.http.routers.grafana.tls=true"
+
+  ingest:
+    build: ./api/ingest/server
+    container_name: ingest_api
+    restart: always
+    environment:
+      - APP_NAME=Ingest_Api
+      - INGEST_BASE_PATH=$INGEST_BASE_PATH
+      - INGEST_DEBUG=${INGEST_DEBUG-false}
+      - INGEST_PUSHGATEWAY_HOST=pushgateway
+      - INGEST_PUSHGATEWAY_PORT=9091
+    expose:
+      - 8443
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ingest.entrypoints=websecure"
+      - "traefik.http.routers.ingest.rule=Host(`smarthouse.av.it.pt`) && PathPrefix(`/api/ingest`)"
+      - "traefik.http.routers.ingest.tls=true"
+
+  reverse-proxy:
+    image: traefik
+    # Enables the web UI and tells Traefik to listen to docker
+    command: 
+      #- "--api.insecure=true" # DONT
+      - "--providers.docker"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.teeresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.teeresolver.acme.email=me@gmail.com"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik_certs:/certs
+      - ./traefik_conf:/conf
+    ports:
+      # The HTTP port
+      - "80:80"
+      # The HTTPS port
+      - "443:443"
+      # The Web UI (enabled by --api.insecure=true)
+      #- "8080:8080"             # DONT
+    depends_on:
+      - ingest
+      - grafana
+    labels:
+      - "traefik.http.routers.traefik.tls=true"
+      - "traefik.http.routers.traefik.tls.certresolver=letsencryptresolver"
+
+volumes:
+  prometheus-data:

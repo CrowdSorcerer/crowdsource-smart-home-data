@@ -1,0 +1,92 @@
+openapi: 3.0.1
+info:
+  title: CrowdSorcerer Ingest API
+  description: The Ingest API for data ingestion into the data lake.
+  license:
+    name: GPLv3
+    url: https://www.gnu.org/licenses/gpl-3.0.en.html
+  version: 0.0.1
+servers:
+- url: https://smarthouse.av.it.pt/api/ingest
+  description: SmartHouse data gathering instance hosting the API
+tags:
+- name: data_upload
+  description: |
+    # Data upload
+    Through the Home Assistant Aggregator, each home produces a data payload that is inserted into the platform as it is received. Each of these payloads is associated with an UUID, which is stored within the Aggregator instances and is sent along with the data. The data upload to the platform is done publicly, with no proper authentication.
+    *As it stands, this UUID effectively identifies the home that produced its data, but no guarantees are made that the UUID was used by a single home, or if any data it is associated with is forged.*
+- name: data_deletion
+  description: |
+    # Data deletion
+    Completely delete data associated with an UUID. This is the operation behind the Forget/Opt-out feature. The users have the right to delete all records from the platform at any time, provided they have the UUID that they uploaded the data by.
+    This operation can be executed publicly on any UUID, but no feedback is transmitted on whether or not the UUID existed previously on the platform. Although, if the operation fails for some reason, that is explicitly expressed.
+paths:
+  /data:
+    post:
+      tags:
+      - data_upload
+      summary: Upload Home data linked to an UUID
+      operationId: data_upload
+      parameters:
+      - name: Home_UUID
+        in: header
+        description: This home's UUID
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        description: The Home data to be uploaded
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              description: "The data extracted by the Home Assitant Aggregator, to\
+                \ be uploaded to the data lake. This corresponds to an encoded JSON\
+                \ string compressed with `zlib` (encoding is UTF-8)."
+              format: binary
+        required: true
+      responses:
+        "200":
+          description: Successfully uploaded the data
+        default:
+          description: Operation could not be carried out for an undefined reason
+      x-openapi-router-controller: crowdsorcerer_server_ingest.controllers.data_upload_controller
+    delete:
+      tags:
+      - data_deletion
+      summary: Clear Home data linked to an UUID
+      operationId: data_deletion
+      parameters:
+      - name: Home_UUID
+        in: header
+        description: This home's UUID
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: The data for the specified UUID is cleared from the platform
+        default:
+          description: Operation could not be carried out for an undefined reason
+      x-openapi-router-controller: crowdsorcerer_server_ingest.controllers.data_deletion_controller
+components:
+  schemas: {}
+  parameters:
+    HomeUUID:
+      name: Home_UUID
+      in: header
+      description: This home's UUID
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+        format: uuid
+x-original-swagger-version: "2.0"
+
