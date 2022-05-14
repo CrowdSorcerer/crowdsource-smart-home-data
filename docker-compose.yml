@@ -51,6 +51,19 @@ services:
       - "traefik.http.routers.ingest.rule=Host(`smarthouse.av.it.pt`) && PathPrefix(`/api/ingest`)"
       - "traefik.http.routers.ingest.tls=true"
 
+  website:
+    build: ./website
+    container_name: website
+    restart: always
+    expose:
+      - 80
+    labels:
+      - traefik.enable=true
+      - "traefik.backend=website"
+      - "traefik.http.routers.website.entrypoints=websecure"
+      - "traefik.http.routers.website.rule=Host(`smarthouse.av.it.pt`)"
+      - "traefik.http.routers.website.tls=true"
+
   reverse-proxy:
     image: traefik
     # Enables the web UI and tells Traefik to listen to docker
@@ -78,6 +91,7 @@ services:
       #- "8080:8080"             # DONT
     depends_on:
       - ingest
+      - website
     labels:
       - "traefik.http.routers.traefik.tls=true"
       - "traefik.http.routers.traefik.tls.certresolver=letsencryptresolver"
