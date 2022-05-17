@@ -30,7 +30,7 @@ class HudiOperations:
         'hoodie.datasource.write.partitionpath.field': 'path_year,path_month,path_day',
         'hoodie.datasource.write.table.name': TABLE_NAME,
         'hoodie.datasource.write.precombine.field': 'ts',
-        'hoodie.write.markers.type': 'direct',
+        'hoodie.write.markers.type': 'direct'
     }
 
     HUDI_METRICS_OPTIONS = {
@@ -47,6 +47,7 @@ class HudiOperations:
         **HUDI_BASE_OPTIONS,
         #**HUDI_METRICS_OPTIONS,
         'hoodie.datasource.write.operation': 'insert',
+        'hoodie.datasource.write.reconcile.schema': True
     }
 
     HUDI_DELETE_OPTIONS = {
@@ -60,10 +61,7 @@ class HudiOperations:
     @classmethod
     def insert_data(cls, datab: bytes, uuid: UUID):
 
-        try:
-            data = decompress_data(datab)
-        except Exception:
-            raise BadIngestDecoding()
+        data = decompress_data(datab)
         
         data['uuid'] = str(uuid)
         
@@ -123,6 +121,13 @@ class HudiOperations:
 
 # Compression used: JSON -> UTF-8 encode -> zlib
 def decompress_data(data: bytes) -> dict:
-    data = zlib.decompress(data)
-    data = data.decode(encoding='utf-8')
-    return json.loads(data)
+    try:
+        data = zlib.decompress(data)
+        data = data.decode(encoding='utf-8')
+        data = json.loads(data)
+    except Exception:
+        raise BadIngestDecoding()
+
+    if not isinstance(data, dict):
+        raise BadIngestDecoding()
+    return data
