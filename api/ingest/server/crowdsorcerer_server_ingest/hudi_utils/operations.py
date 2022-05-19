@@ -110,16 +110,11 @@ class HudiOperations:
         for column in df.schema.fields:
             cls.INGESTED_COLUMNS.add((column.name, column.dataType))
 
-        evolve_schema = False
-        for non_existent_column_name, non_existent_column_type in cls.INGESTED_COLUMNS:
-            if non_existent_column_name not in df.columns:
-                df = df.withColumn(non_existent_column_name, lit(None).cast(non_existent_column_type))
-                evolve_schema = True
-        
-        df.show()
-
-        if evolve_schema:
+        if any(column not in cls.INGESTED_COLUMNS for column in df.columns):    
             print('New attribute, evolving schema')
+            for non_existent_column_name, non_existent_column_type in cls.INGESTED_COLUMNS:
+                if non_existent_column_name not in df.columns:
+                    df = df.withColumn(non_existent_column_name, lit(None).cast(non_existent_column_type))
 
         print('Inserting data into', cls.BASE_PATH)
         df.write.format('hudi') \
