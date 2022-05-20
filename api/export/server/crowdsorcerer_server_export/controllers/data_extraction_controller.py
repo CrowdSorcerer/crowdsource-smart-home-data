@@ -53,11 +53,11 @@ def data_extraction(format_, date_from=None, date_to=None):  # noqa: E501
     
     zipped_data = io.BytesIO()
     z = zipfile.ZipFile(zipped_data, mode='w', compression=zipfile.ZIP_DEFLATED, compresslevel=9)
-    z.writestr(f'crowdsorcerer_extract.{format_}', response_data, compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
+    z.writestr(f'crowdsorcerer_extract.{format_}', response_data)
     z.close()
 
-    print('Data:', zipped_data.read())
-
+    zipped_data.seek(0)
+    
     return send_file(
         path_or_file=zipped_data,
         mimetype='application/zip',
