@@ -1,5 +1,4 @@
 import pandas as pd
-from enum import Enum
 
 
 def df_to_xml(data_frame: pd.DataFrame) -> str:

@@ -3,7 +3,6 @@ import six
 
 import io
 from dateutil.parser import ParserError
-from zlib import compress
 import zipfile
 
 from flask import Response, send_file
