@@ -30,14 +30,8 @@ services:
     volumes:
       - ./Dashboard/Grafana/provisioning/:/etc/grafana/provisioning/
     restart: always
-    expose:
-      - 3000
-    labels:
-      - traefik.enable=true
-      - "traefik.backend=grafana"
-      - "traefik.http.routers.grafana.entrypoints=websecure"
-      - "traefik.http.routers.grafana.rule=Host(`smarthouse.av.it.pt`)"
-      - "traefik.http.routers.grafana.tls=true"
+    ports:
+      - 3000:3000
 
   ingest:
     build: ./api/ingest/server
@@ -56,6 +50,19 @@ services:
       - "traefik.http.routers.ingest.entrypoints=websecure"
       - "traefik.http.routers.ingest.rule=Host(`smarthouse.av.it.pt`) && PathPrefix(`/api/ingest`)"
       - "traefik.http.routers.ingest.tls=true"
+
+  website:
+    build: ./website
+    container_name: website
+    restart: always
+    expose:
+      - 80
+    labels:
+      - traefik.enable=true
+      - "traefik.backend=website"
+      - "traefik.http.routers.website.entrypoints=websecure"
+      - "traefik.http.routers.website.rule=Host(`smarthouse.av.it.pt`)"
+      - "traefik.http.routers.website.tls=true"
 
   reverse-proxy:
     image: traefik
@@ -84,7 +91,7 @@ services:
       #- "8080:8080"             # DONT
     depends_on:
       - ingest
-      - grafana
+      - website
     labels:
       - "traefik.http.routers.traefik.tls=true"
       - "traefik.http.routers.traefik.tls.certresolver=letsencryptresolver"

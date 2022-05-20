@@ -4,12 +4,33 @@ from datetime import datetime, timezone, timedelta
 from os import environ
 from uuid import UUID
 from urllib.error import URLError
+from typing import List
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import lit
+from py4j.java_gateway import Py4JJavaError
 from prometheus_client import CollectorRegistry, Counter, push_to_gateway
 
-from crowdsorcerer_server_ingest.exceptions import BadIngestDecoding
+from crowdsorcerer_server_ingest.exceptions import BadIngestDecoding, BadJSONStructure, InvalidJSONKey
+    
+
+
+# Compression used: JSON -> UTF-8 encode -> zlib
+def decompress_data(data: bytes) -> dict:
+    try:
+        data = zlib.decompress(data)
+        data = data.decode(encoding='utf-8')
+        data = json.loads(data)
+    except Exception:
+        raise BadIngestDecoding()
+
+    if not isinstance(data, dict):
+        raise BadJSONStructure()
+
+    return data
+
+def valid_data_key(key: str) -> bool:
+    return not key.startswith('_hoodie')
 
 
 
@@ -18,6 +39,15 @@ class HudiOperations:
     SPARK = SparkSession.builder.getOrCreate()
     TABLE_NAME = 'hudi_ingestion'
     BASE_PATH = environ.get('INGEST_BASE_PATH', 'file:///tmp') + '/' + TABLE_NAME
+
+    # This is required so that proper schema evolution can be done. In case a new column is missing, we have to include all others in the insertion
+    # It's assumed that this is the only place where ingestion into this table is performed
+    try:
+        INGESTED_COLUMNS = { (column.name, column.dataType) for column in SPARK.read.format('hudi').load(BASE_PATH).schema.fields if valid_data_key(column.name) }
+    # In case the table doesn't exist yet.
+    # The specific exception is java.io.FileNotFoundException, and it would be messy to check for a Java exception here, so a generic Py4J exception is checked for
+    except Py4JJavaError:
+        INGESTED_COLUMNS = set()
 
     TIMEZONE = timezone(timedelta(hours=0))
 
@@ -30,7 +60,7 @@ class HudiOperations:
         'hoodie.datasource.write.partitionpath.field': 'path_year,path_month,path_day',
         'hoodie.datasource.write.table.name': TABLE_NAME,
         'hoodie.datasource.write.precombine.field': 'ts',
-        'hoodie.write.markers.type': 'direct',
+        'hoodie.write.markers.type': 'direct'
     }
 
     HUDI_METRICS_OPTIONS = {
@@ -47,6 +77,7 @@ class HudiOperations:
         **HUDI_BASE_OPTIONS,
         #**HUDI_METRICS_OPTIONS,
         'hoodie.datasource.write.operation': 'insert',
+        'hoodie.datasource.write.reconcile.schema': True
     }
 
     HUDI_DELETE_OPTIONS = {
@@ -60,11 +91,12 @@ class HudiOperations:
     @classmethod
     def insert_data(cls, datab: bytes, uuid: UUID):
 
-        try:
-            data = decompress_data(datab)
-        except Exception:
-            raise BadIngestDecoding()
+        data = decompress_data(datab)
         
+        for key in data:
+            if not valid_data_key(key):
+                raise InvalidJSONKey()
+
         data['uuid'] = str(uuid)
         
         dt = datetime.now(tz=cls.TIMEZONE)
@@ -73,10 +105,16 @@ class HudiOperations:
         data['path_day'] = dt.day
         data['ts'] = dt.timestamp()
 
-        df = cls.SPARK.createDataFrame(
-            data=[tuple(data.values())],
-            schema=tuple(data.keys())
-        )
+        df = cls.SPARK.createDataFrame([data])
+
+        for column in df.schema.fields:
+            cls.INGESTED_COLUMNS.add((column.name, column.dataType))
+
+        if any(column not in cls.INGESTED_COLUMNS for column in df.columns):    
+            print('New attribute, evolving schema')
+            for non_existent_column_name, non_existent_column_type in cls.INGESTED_COLUMNS:
+                if non_existent_column_name not in df.columns:
+                    df = df.withColumn(non_existent_column_name, lit(None).cast(non_existent_column_type))
 
         print('Inserting data into', cls.BASE_PATH)
         df.write.format('hudi') \
@@ -118,11 +156,3 @@ class HudiOperations:
             .options(**cls.HUDI_DELETE_OPTIONS) \
             .mode('append') \
             .save(cls.BASE_PATH)
-    
-
-
-# Compression used: JSON -> UTF-8 encode -> zlib
-def decompress_data(data: bytes) -> dict:
-    data = zlib.decompress(data)
-    data = data.decode(encoding='utf-8')
-    return json.loads(data)

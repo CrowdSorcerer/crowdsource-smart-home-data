@@ -22,6 +22,8 @@ app.add_api('swagger.yaml', arguments={'title': 'CrowdSorcerer Ingest API'}, pyt
 # Exceptions
 app.add_error_handler(**MALFORMED_UUID)
 app.add_error_handler(**BAD_INGEST_DECODING)
+app.add_error_handler(**BAD_JSON_STRUCTURE)
+app.add_error_handler(**INVALID_JSON_KEY)
 
 # Set up rate limiter
 # limiter = Limiter(app.app, \

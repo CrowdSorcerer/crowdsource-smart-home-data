@@ -120,6 +120,7 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
+      "description": "Size of the data lake in megabytes.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -194,7 +195,9 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "data_lake_size",
+          "editorMode": "builder",
+          "expr": "data_lake_size / 1000000",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -292,6 +295,7 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
+      "description": "Amount of data uploads that are discontinued (more than 30 days without upload).",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -381,7 +385,7 @@
     "list": []
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-30d",
     "to": "now"
   },
   "timepicker": {},
