@@ -1,0 +1,87 @@
+openapi: 3.0.3
+x-original-swagger-version: '2.0'
+info:
+    title: CrowdSorcerer Export API
+    version: 0.0.1
+    description: The Export API for data exportation from the data lake into CKAN compliant formats. Not all formats may be supported.
+    #termsOfService: 'http://swagger.io/terms/'
+    license:
+        name: 'GPLv3'
+        url: 'https://www.gnu.org/licenses/gpl-3.0.en.html'
+    #contact:
+        #name: API Support
+        #url: link
+        #email: apiteam@swagger.io
+components:
+    parameters:
+        HomeUUID:
+            name: Home_UUID
+            in: header
+            description: This home's UUID
+            schema:
+                type: string
+                format: uuid
+            required: true
+paths:
+    /{format}:
+        get:
+            operationId: data_extraction
+            parameters:
+                -
+                    name: format
+                    in: path
+                    description: The desired exportation format
+                    required: true
+                    schema:
+                        type: string
+                -
+                    name: date_from
+                    in: query
+                    description: Only data from this date forwards will be extracted (UTC+0, in ISO 8601 format), inclusive.
+                    required: false
+                    schema:
+                        type: string
+                        format: date
+                -
+                    name: date_to
+                    in: query
+                    description: Only data from this date backwards will be extracted (UTC+0, in ISO 8601 format), inclusive.
+                    required: false
+                    schema:
+                        type: string
+                        format: date
+            responses:
+                '200':
+                    headers:
+                        Content-Disposition:
+                            description: Don't show the data inline, download locally as a file.
+                            schema:
+                                type: string
+                            example: attachment; filename="crowdsorcerer_extract.zip"
+                    content:
+                        application/zip:
+                            encoding:
+                                extractedData:
+                                    contentType: application/zip
+                    description: The extracted data, compressed in a zip.
+                default:
+                    description: Operation could not be carried out for an undefined reason.
+            summary: Extract data from the data lake into a CKAN compliant format, zipped.
+            tags:
+                - data_extraction
+servers:
+    - 
+        url: 'https://smarthouse.av.it.pt/api/export'
+        description: SmartHouse data gathering instance hosting the API
+tags:
+    - 
+        description: >
+            # Data extraction
+
+            Extract the data present in the data lake into CKAN compliant formats. The data returned is compressed.
+            For now, the following formats are supported:
+            - XML
+            - CSV
+            - JSON
+            - EXCEL
+        name: data_extraction
