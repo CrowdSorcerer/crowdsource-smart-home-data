@@ -34,6 +34,15 @@ def valid_data_key(key: str) -> bool:
 
 
 
+class Sensor:
+
+    def __init__(self, entity_id: str, last_changed: str, last_updated: str, state: str, attributes: dict):
+        self.entity_id = entity_id
+        self.last_changed = last_changed
+        self.last_updated = last_updated
+        self.state = state
+        self.attributes = attributes
+
 class HudiOperations:
 
     SPARK = SparkSession.builder.getOrCreate()
@@ -93,9 +102,20 @@ class HudiOperations:
 
         data = decompress_data(datab)
         
-        for key in data:
-            if not valid_data_key(key):
-                raise InvalidJSONKey()
+        for sensor_name, sensor_data in data.items():
+            # sensor = Sensor(
+            #     entity_id=sensor_data['entity_id'],
+            #     last_changed=sensor_data['last_changed'],
+            #     last_updated=sensor_data['last_updated'],
+            #     state=sensor_data['state'],
+            #     attributes=sensor_data['attributes']
+            # )
+            # data[sensor_name] = sensor
+            pass
+
+        # for key in data:
+        #     if not valid_data_key(key):
+        #         raise InvalidJSONKey()
 
         data['uuid'] = str(uuid)
         
