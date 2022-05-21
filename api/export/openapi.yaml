@@ -12,16 +12,6 @@ info:
         #name: API Support
         #url: link
         #email: apiteam@swagger.io
-components:
-    parameters:
-        HomeUUID:
-            name: Home_UUID
-            in: header
-            description: This home's UUID
-            schema:
-                type: string
-                format: uuid
-            required: true
 paths:
     /{format}:
         get:
@@ -30,7 +20,7 @@ paths:
                 -
                     name: format
                     in: path
-                    description: The desired exportation format
+                    description: The case insensitive string representing the dataset's output format
                     required: true
                     schema:
                         type: string
@@ -83,5 +73,4 @@ tags:
             - XML
             - CSV
             - JSON
-            - EXCEL
         name: data_extraction

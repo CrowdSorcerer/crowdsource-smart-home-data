@@ -14,7 +14,7 @@ tags:
 - name: data_extraction
   description: |
     # Data extraction
-    Extract the data present in the data lake into CKAN compliant formats. The data returned is compressed. For now, the following formats are supported: - XML - CSV - JSON - EXCEL
+    Extract the data present in the data lake into CKAN compliant formats. The data returned is compressed. For now, the following formats are supported: - XML - CSV - JSON
 paths:
   /{format}:
     get:
@@ -25,7 +25,8 @@ paths:
       parameters:
       - name: format
         in: path
-        description: The desired exportation format
+        description: The case insensitive string representing the dataset's output
+          format
         required: true
         style: simple
         explode: false
@@ -71,18 +72,6 @@ paths:
         default:
           description: Operation could not be carried out for an undefined reason.
       x-openapi-router-controller: crowdsorcerer_server_export.controllers.data_extraction_controller
-components:
-  schemas: {}
-  parameters:
-    HomeUUID:
-      name: Home_UUID
-      in: header
-      description: This home's UUID
-      required: true
-      style: simple
-      explode: false
-      schema:
-        type: string
-        format: uuid
+components: {}
 x-original-swagger-version: "2.0"
 
