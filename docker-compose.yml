@@ -74,13 +74,12 @@ services:
       - "--providers.docker"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
-      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      #- "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      #- "--entrypoints.web.http.redirections.entrypoint.scheme=https"
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
-      - "--certificatesresolvers.myresolver.acme.email=me@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.email=rodrigoflima@ua.pt"
       - "--certificatesresolvers.myresolver.acme.storage=acme.json"
-      #- "--certificatesresolvers.myresolver.acme.dnschallenge.provider=digitalocean"
     volumes:
       # So that Traefik can listen to the Docker events
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -98,7 +97,7 @@ services:
       - website
     labels:
       - "traefik.http.routers.traefik.tls=true"
-      - "traefik.http.routers.traefik.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.traefik.tls.certresolver=myresolver"
 
 volumes:
   prometheus-data:
