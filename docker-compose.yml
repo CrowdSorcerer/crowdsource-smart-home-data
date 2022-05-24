@@ -98,7 +98,7 @@ services:
       - website
     labels:
       - "traefik.http.routers.traefik.tls=true"
-      - "traefik.http.routers.traefik.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.traefik.tls.certresolver=myresolver"
 
 volumes:
   prometheus-data:
