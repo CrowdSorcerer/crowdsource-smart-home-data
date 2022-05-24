@@ -111,7 +111,7 @@ class HudiOperations:
             #     attributes=sensor_data['attributes']
             # )
             # data[sensor_name] = sensor
-            pass
+            data[sensor_name.replace('.', '_')] = data.pop(sensor_name)
 
         # for key in data:
         #     if not valid_data_key(key):
