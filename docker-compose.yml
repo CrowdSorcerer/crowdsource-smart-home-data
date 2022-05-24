@@ -50,6 +50,7 @@ services:
       - "traefik.http.routers.ingest.entrypoints=websecure"
       - "traefik.http.routers.ingest.rule=Host(`smarthouse.av.it.pt`) && PathPrefix(`/api/ingest`)"
       - "traefik.http.routers.ingest.tls=true"
+      - "traefik.http.routers.ingest.tls.certresolver=letsencrypt"
 
   website:
     build: ./website
@@ -63,6 +64,7 @@ services:
       - "traefik.http.routers.website.entrypoints=websecure"
       - "traefik.http.routers.website.rule=Host(`smarthouse.av.it.pt`)"
       - "traefik.http.routers.website.tls=true"
+      - "traefik.http.routers.website.tls.certresolver=letsencrypt"
 
   reverse-proxy:
     image: traefik
@@ -75,8 +77,10 @@ services:
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
       - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
       - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.teeresolver.acme.tlschallenge=true"
-      - "--certificatesresolvers.teeresolver.acme.email=me@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=me@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.storage=acme.json"
+      - "--certificatesresolvers.myresolver.acme.dnschallenge.provider=digitalocean"
     volumes:
       # So that Traefik can listen to the Docker events
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -94,7 +98,8 @@ services:
       - website
     labels:
       - "traefik.http.routers.traefik.tls=true"
-      - "traefik.http.routers.traefik.tls.certresolver=letsencryptresolver"
+      - "traefik.http.routers.traefik.tls.certresolver=letsencrypt"
 
 volumes:
   prometheus-data:
+  
