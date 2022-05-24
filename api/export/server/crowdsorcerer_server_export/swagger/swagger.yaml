@@ -52,6 +52,17 @@ paths:
         schema:
           type: string
           format: date
+      - name: types
+        in: query
+        description: Only data from these types of producer will be extracted (e.g.
+          sensor)
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
       responses:
         "200":
           description: "The extracted data, compressed in a zip."

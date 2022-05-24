@@ -40,6 +40,16 @@ paths:
                     schema:
                         type: string
                         format: date
+                -
+                    name: types
+                    in: query
+                    description: Only data from these types of producer will be extracted (e.g. sensor)
+                    required: false
+                    schema:
+                        type: array
+                        items:
+                            type: string
+                    style: form
             responses:
                 '200':
                     headers:
