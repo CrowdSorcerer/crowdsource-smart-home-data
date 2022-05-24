@@ -1,5 +1,5 @@
 from os import environ
-from datetime import date
+from datetime import date, timedelta
 
 from pyspark.sql import SparkSession
 from pandas import DataFrame, Series
@@ -29,6 +29,9 @@ class HudiOperations:
         df = cls.SPARK.read.format('hudi').load(cls.BASE_PATH)
 
         df = df.drop('ts', '_hoodie_commit_time', '_hoodie_commit_seqno', '_hoodie_record_key', '_hoodie_partition_path', '_hoodie_file_name')
+
+        yesterday = date.today() - timedelta(days=1)
+        date_to = yesterday if date_to > yesterday else date_to
 
         if date_from:
             df = df.where(f'path_year>{date_from.year} \
