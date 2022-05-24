@@ -80,7 +80,6 @@ services:
       - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
       - "--certificatesresolvers.myresolver.acme.email=me@gmail.com"
       - "--certificatesresolvers.myresolver.acme.storage=acme.json"
-      - "--certificatesresolvers.myresolver.acme.dnschallenge.provider=digitalocean"
     volumes:
       # So that Traefik can listen to the Docker events
       - /var/run/docker.sock:/var/run/docker.sock:ro
