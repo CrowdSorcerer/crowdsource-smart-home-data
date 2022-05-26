@@ -10,7 +10,7 @@ from crowdsorcerer_server_export.df2CKAN import EXPORT_FORMATS
 
 
 
-def extract(format_, date_from=None, date_to=None, types=None):
+def extract(format_, date_from=None, date_to=None, types=None, units=None):
 
     format_ = format_.lower()
     if format_ not in EXPORT_FORMATS:
@@ -30,7 +30,8 @@ def extract(format_, date_from=None, date_to=None, types=None):
     df = HudiOperations.get_data(
         date_from=date_from,
         date_to=date_to,
-        types=types
+        types=types,
+        units=units
     )
 
     response_data = convert(df).encode(encoding='utf-8')

@@ -27,7 +27,7 @@ paths:
                 -
                     name: date_from
                     in: query
-                    description: Only data from this date forwards will be extracted (UTC+0, in ISO 8601 format), inclusive.
+                    description: Only data from this date forwards will be extracted (UTC+0, in ISO 8601 format), inclusive
                     required: false
                     schema:
                         type: string
@@ -35,7 +35,7 @@ paths:
                 -
                     name: date_to
                     in: query
-                    description: Only data from this date backwards will be extracted (UTC+0, in ISO 8601 format), inclusive.
+                    description: Only data from this date backwards will be extracted (UTC+0, in ISO 8601 format), inclusive
                     required: false
                     schema:
                         type: string
@@ -50,6 +50,15 @@ paths:
                         items:
                             type: string
                     style: form
+                -
+                    name: units
+                    in: query
+                    description: Only data which is represented in the specified units of measurement will be extracted (e.g. GHz)
+                    required: false
+                    schema:
+                        type: array
+                        items:
+                            type: string
             responses:
                 '200':
                     headers:
