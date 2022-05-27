@@ -81,7 +81,7 @@ services:
       - "--certificatesresolvers.myresolver.acme.email=rodrigoflima@ua.pt"
       - "--certificatesresolvers.myresolver.acme.storage=acme.json"
       # Staging server to mimic production (to not get banned due to rate limiting)
-      - "--certificatesResolvers.sample.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.myresolver.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory"
     volumes:
       # So that Traefik can listen to the Docker events
       - /var/run/docker.sock:/var/run/docker.sock:ro
