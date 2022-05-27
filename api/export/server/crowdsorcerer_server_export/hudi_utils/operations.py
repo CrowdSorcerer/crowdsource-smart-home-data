@@ -2,11 +2,13 @@ from os import environ
 from datetime import date, timedelta
 from typing import List
 from functools import reduce
-from operator import iand
+from operator import iand, ior
 
 from pyspark.sql import SparkSession, Column
 from pyspark.sql.functions import from_json, regexp_replace
 from pandas import DataFrame, Series
+
+from crowdsorcerer_server_export.exceptions import EmptyDataset
 
 
 
@@ -63,20 +65,25 @@ class HudiOperations:
 
         if units:
             units_columns = [(from_json(regexp_replace(column[0].attributes, '=(.*?)([,}])', ':"$1"$2'), 'unit_of_measurement STRING', {'allowUnquotedFieldNames': True}).unit_of_measurement.alias(column_name), column_name) for column, column_name in data_columns]
+            valid_data_columns = []
+            invalid_data_columns_names = []
             for column, column_name in units_columns:
-                print('Count of nulls in ', column_name, 'is', df.select(column).dropna().count())
-                df.select(column).show()
                 if df.select(column).dropna().count() == 0:
-                    print('Dropping ', column_name)
-                    df.drop(column_name)
+                    invalid_data_columns_names.append(column_name)
                 else:
-                    df = df.where(column.isin(units))
+                    valid_data_columns.append(column)
+            df = df \
+                    .drop(*invalid_data_columns_names) \
+                    .where( reduce(ior, [ column.isin(units) for column in valid_data_columns ]) )
             data_columns = [ (col, name) for col, name in data_columns if name in df.columns ]
             
 
         for column, _ in data_columns:
             if df.select(column).dropna().count() == 0:
                 df = df.drop(column)
+
+        if len(df.columns) == len(metadata_columns) or df.count() == 0:
+            raise EmptyDataset()
 
 
         # Extremelly expensive, loads everything into memory!

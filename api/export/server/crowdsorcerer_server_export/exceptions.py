@@ -1,4 +1,4 @@
-from http.client import BAD_REQUEST
+from http.client import BAD_REQUEST, NO_CONTENT
 from crowdsorcerer_server_export.df2CKAN import EXPORT_FORMATS
 
 
@@ -26,6 +26,12 @@ class UnsupportedExportationFormat(RuntimeError):
             return f"Specified exportation format '{self.format_}' is not supported. Supported formats are: {supported_str}."
         return f"Specified exportation format is not supported. Supported formats are: {supported_str}."
 
+class EmptyDataset(RuntimeError):
+    """The provided query filters produce a dataset without data columns or rows."""
+
+    def __str__(self):
+        return "The provided query filters produce a dataset without data columns or rows."
+
 
 
 BAD_DATE_FORMAT = {
@@ -44,4 +50,13 @@ UNSUPPORTED_EXPORTATION_FORMAT = {
             'status': BAD_REQUEST,
             'title': 'Bad Request'
         }, BAD_REQUEST)
+}
+
+EMTPY_DATASET = {
+    'error_code': EmptyDataset,
+    'function': lambda error: ({
+            'detail': str(error),
+            'status': NO_CONTENT,
+            'title': 'No Content'
+        }, NO_CONTENT)
 }
