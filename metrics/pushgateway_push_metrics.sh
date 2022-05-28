@@ -20,14 +20,16 @@ fi
 spark-submit --packages org.apache.hudi:hudi-spark3.1.2-bundle_2.12:0.10.1,org.apache.spark:spark-avro_2.12:3.1.2 hudi_metrics.py --hudi-location ${hudi_address}${hudi_path}
 metrics=$(cat hudi_metrics.txt)
 
+
+
 if command -v hdfs
 then
     data_lake_size=$(hdfs dfs -du -s $hudi_path | cut -f1 -d ' ')
-    
-
-elif [ "$hudi_address" -eq "file://" ]
+elif [ "$hudi_address" = "file://" ]
 then
     data_lake_size=$(du -s $hudi_path | cut -f1)
+else
+    data_lake_size=-1
 fi
 
 metrics+="
