@@ -77,14 +77,14 @@ class HudiOperations:
         'hoodie.metrics.reporter.type': 'PROMETHEUS_PUSHGATEWAY',
         'hoodie.metrics.pushgateway.host': PUSHGATEWAY_HOST,
         'hoodie.metrics.pushgateway.port': PUSHGATEWAY_PORT,
-        'hoodie.metrics.pushgateway.job.name': 'hudi_job',
+        'hoodie.metrics.pushgateway.job.name': 'hudi_ingest_job',
         'hoodie.metrics.pushgateway.random.job.name.suffix': False,
         'hoodie.metrics.pushgateway.delete.on.shutdown': False
     }
 
     HUDI_INSERT_OPTIONS = {
         **HUDI_BASE_OPTIONS,
-        #**HUDI_METRICS_OPTIONS,
+        **HUDI_METRICS_OPTIONS,
         'hoodie.datasource.write.operation': 'insert',
         'hoodie.datasource.write.reconcile.schema': True
     }
@@ -144,7 +144,7 @@ class HudiOperations:
 
         cls.INGEST_COUNTER.inc()
         try:
-            push_to_gateway(f'{cls.PUSHGATEWAY_HOST}:{cls.PUSHGATEWAY_PORT}', job='ingestion_job', registry=cls.REGISTRY)
+            push_to_gateway(f'{cls.PUSHGATEWAY_HOST}:{cls.PUSHGATEWAY_PORT}', job='hudi_ingest_counter_job', registry=cls.REGISTRY)
         except URLError:
             print('Could not push metrics to the Pushgateway server')
 
