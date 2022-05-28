@@ -102,7 +102,7 @@ class HudiOperations:
 
         data = decompress_data(datab)
         
-        for sensor_name, sensor_data in data.items():
+        # for sensor_name, sensor_data in data.items():
             # sensor = Sensor(
             #     entity_id=sensor_data['entity_id'],
             #     last_changed=sensor_data['last_changed'],
@@ -111,7 +111,7 @@ class HudiOperations:
             #     attributes=sensor_data['attributes']
             # )
             # data[sensor_name] = sensor
-            data[sensor_name.replace('.', '_')] = data.pop(sensor_name)
+            # data[sensor_name.replace('.', '_')] = data.pop(sensor_name)
 
         # for key in data:
         #     if not valid_data_key(key):
@@ -127,10 +127,14 @@ class HudiOperations:
 
         df = cls.SPARK.createDataFrame([data])
 
+        evolve_schema = False
+        
         for column in df.schema.fields:
-            cls.INGESTED_COLUMNS.add((column.name, column.dataType))
+            if (column.name, column.dataType) not in cls.INGESTED_COLUMNS:
+                cls.INGESTED_COLUMNS.add((column.name, column.dataType))
+                evolve_schema = True
 
-        if any(column not in cls.INGESTED_COLUMNS for column in df.columns):    
+        if evolve_schema:
             print('New attribute, evolving schema')
             for non_existent_column_name, non_existent_column_type in cls.INGESTED_COLUMNS:
                 if non_existent_column_name not in df.columns:
