@@ -1,33 +1,15 @@
-import zlib
-import json
 from datetime import datetime, timezone, timedelta
 from os import environ
 from uuid import UUID
 from urllib.error import URLError
-from typing import List
+from typing import Any, Dict
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import lit
 from py4j.java_gateway import Py4JJavaError
 from prometheus_client import CollectorRegistry, Counter, push_to_gateway
 
-from crowdsorcerer_server_ingest.exceptions import BadIngestDecoding, BadJSONStructure, InvalidJSONKey
-    
 
-
-# Compression used: JSON -> UTF-8 encode -> zlib
-def decompress_data(data: bytes) -> dict:
-    try:
-        data = zlib.decompress(data)
-        data = data.decode(encoding='utf-8')
-        data = json.loads(data)
-    except Exception:
-        raise BadIngestDecoding()
-
-    if not isinstance(data, dict):
-        raise BadJSONStructure()
-
-    return data
 
 def valid_data_key(key: str) -> bool:
     return not key.startswith('_hoodie')
@@ -98,9 +80,7 @@ class HudiOperations:
     INGEST_COUNTER = Counter('ingest_count', 'Number of ingestion (data upload) requests that have been successfully made.', registry=REGISTRY)
 
     @classmethod
-    def insert_data(cls, datab: bytes, uuid: UUID):
-
-        data = decompress_data(datab)
+    def insert_data(cls, data: Dict[str, Any], uuid: UUID):
         
         # for sensor_name, sensor_data in data.items():
             # sensor = Sensor(
@@ -127,18 +107,13 @@ class HudiOperations:
 
         df = cls.SPARK.createDataFrame([data])
 
-        evolve_schema = False
-        
         for column in df.schema.fields:
             if (column.name, column.dataType) not in cls.INGESTED_COLUMNS:
                 cls.INGESTED_COLUMNS.add((column.name, column.dataType))
-                evolve_schema = True
 
-        if evolve_schema:
-            print('New attribute, evolving schema')
-            for non_existent_column_name, non_existent_column_type in cls.INGESTED_COLUMNS:
-                if non_existent_column_name not in df.columns:
-                    df = df.withColumn(non_existent_column_name, lit(None).cast(non_existent_column_type))
+        for non_existent_column_name, non_existent_column_type in cls.INGESTED_COLUMNS:
+            if non_existent_column_name not in df.columns:
+                df = df.withColumn(non_existent_column_name, lit(None).cast(non_existent_column_type))
 
         print('Inserting data into', cls.BASE_PATH)
         df.write.format('hudi') \

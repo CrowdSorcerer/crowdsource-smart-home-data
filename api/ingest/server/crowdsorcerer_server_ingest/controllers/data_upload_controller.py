@@ -1,11 +1,14 @@
 import connexion
 import six
 
-from crowdsorcerer_server_ingest import util
-from http.client import OK
-from crowdsorcerer_server_ingest.exceptions import MalformedUUID
-from crowdsorcerer_server_ingest.hudi_utils.operations import HudiOperations
+import json
+import zlib
 from uuid import UUID
+from http.client import OK
+
+from crowdsorcerer_server_ingest import util
+from crowdsorcerer_server_ingest.exceptions import BadIngestDecoding, BadJSONStructure, MalformedUUID
+from crowdsorcerer_server_ingest.hudi_utils.operations import HudiOperations
 
 
 def data_upload(body):  # noqa: E501
@@ -28,6 +31,23 @@ def data_upload(body):  # noqa: E501
     except ValueError:
         raise MalformedUUID()
 
-    HudiOperations.insert_data(body, home_uuid)
+    data = decompress_data(body)
+    
+    HudiOperations.insert_data(data, home_uuid)
 
     return 'Successfully uploaded the data', OK
+
+
+# Compression used: JSON -> UTF-8 encode -> zlib
+def decompress_data(data: bytes) -> dict:
+    try:
+        data = zlib.decompress(data)
+        data = data.decode(encoding='utf-8')
+        data = json.loads(data)
+    except Exception:
+        raise BadIngestDecoding()
+
+    if not isinstance(data, dict):
+        raise BadJSONStructure()
+
+    return data

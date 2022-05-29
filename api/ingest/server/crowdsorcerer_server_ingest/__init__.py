@@ -4,6 +4,7 @@ from distutils.util import strtobool
 import connexion
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_cors import CORS
 
 from crowdsorcerer_server_ingest import encoder
 from .hudi_utils.initialize import hudi_init
@@ -18,6 +19,8 @@ hudi_init()
 app = connexion.App(__name__, specification_dir='./swagger/')
 app.app.json_encoder = encoder.JSONEncoder
 app.add_api('swagger.yaml', arguments={'title': 'CrowdSorcerer Ingest API'}, pythonic_params=True)
+
+cors = CORS(app.app)
 
 # Exceptions
 app.add_error_handler(**MALFORMED_UUID)
