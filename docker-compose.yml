@@ -46,11 +46,11 @@ services:
     expose:
       - 8443
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.ingest.entrypoints=websecure"
-      - "traefik.http.routers.ingest.rule=Host(`smarthouse.av.it.pt`) && PathPrefix(`/api/ingest`)"
-      - "traefik.http.routers.ingest.tls=true"
-      - "traefik.http.routers.ingest.tls.certresolver=sample"
+      - traefik.enable=true"
+      - traefik.http.routers.ingest.entrypoints=websecure
+      - traefik.http.routers.ingest.rule=Host(`smarthouse.av.it.pt`) && PathPrefix(`/api/ingest`)
+      - traefik.http.routers.ingest.tls=true
+      - traefik.http.routers.ingest.tls.certresolver=sample
 
   website:
     build: ./website
@@ -60,51 +60,50 @@ services:
       - 80
     labels:
       - traefik.enable=true
-      - "traefik.backend=website"
-      - "traefik.http.routers.website.entrypoints=websecure"
-      - "traefik.http.routers.website.rule=Host(`smarthouse.av.it.pt`)"
-      - "traefik.http.routers.website.tls=true"
-      - "traefik.http.routers.website.tls.certresolver=sample"
+      - traefik.backend=website
+      - traefik.http.routers.website.entrypoints=websecure
+      - traefik.http.routers.website.rule=Host(`smarthouse.av.it.pt`)
+      - traefik.http.routers.website.tls=true
+      - traefik.http.routers.website.tls.certresolver=sample
 
   reverse-proxy:
     image: traefik
     # Enables the web UI and tells Traefik to listen to docker
     command: 
       #- "--api.insecure=true" # DONT
-      - "--providers.docker"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
+      - --providers.docker
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
 
       # Redirect to use SSL
       #- "--entrypoints.web.http.redirections.entrypoint.to=websecure"
       #- "--entrypoints.web.http.redirections.entrypoint.scheme=https"
 
       # SSL Lets encrypt
-      - "--certificatesResolvers.sample.acme.tlsChallenge=true"
-      - "--certificatesResolvers.sample.acme.email=rodrigoflima@ua.pt"
-      - "--certificatesResolvers.sample.acme.storage=acme.json"
-      - "--certificatesResolvers.sample.acme.httpChallenge.entryPoint=web"
+      - --certificatesResolvers.sample.acme.tlsChallenge=true
+      - --certificatesResolvers.sample.acme.email=rodrigoflima@ua.pt
+      - --certresolv.myresolver.acme.storage=/shared/acme.json
+      - --certificatesResolvers.sample.acme.httpChallenge.entryPoint=web
       # Staging server to mimic production (to not get banned due to rate limiting)
-      - "--certificatesResolvers.sample.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - --certificatesResolvers.sample.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory
     volumes:
       # So that Traefik can listen to the Docker events
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik_certs:/certs
-      - ./traefik_conf:/conf
+      - ./shared:/shared
     ports:
       # The HTTP port
-      - "80:80"
+      - 80:80
       # The HTTPS port
-      - "443:443"
+      - 443:443
       # The Web UI (enabled by --api.insecure=true)
-      #- "8080:8080"             # DONT
+      #- 8080:8080               # DONT
     depends_on:
       - ingest
       - website
     labels:
-      - "traefik.http.routers.traefik.tls=true"
-      - "traefik.http.routers.traefik.tls.certresolver=sample"
+      - traefik.http.routers.traefik.tls=true
+      - traefik.http.routers.traefik.tls.certresolver=sample
 
 volumes:
   prometheus-data:
