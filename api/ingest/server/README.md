@@ -16,7 +16,6 @@ The server uses PySpark to communicate with the data lake. It is included in `re
 | Name | Description | Examples | Default |
 |------|-------------|----------|---------|
 | INGEST_BASE_PATH | the path where the application should store the data | `hdfs://<IP>:<PORT>/` | `file:///tmp/` |
-| INGEST_DEBUG | whether or not to load the application in the debug/development environment | `true` | `false` |
 | INGEST_PUSHGATEWAY_HOST | host of the Pushgateway instance to which metrics will be sent | `localhost` | `localhost` |
 | INGEST_PUSHGATEWAY_PORT | port of the Pushgateway instance to which metrics will be sent | `9091` | `9091` |
 | PYSPARK_PYTHON | the Python binary to use for PySpark | `/usr/bin/python3` | None |
@@ -60,8 +59,3 @@ docker build -t crowdsorcerer_server_ingest .
 # starting up a container
 docker run -p 8080:8080 crowdsorcerer_server_ingest
 ```
-
-## Debug environment
-
-In the debug environment set by the `INGEST_DEBUG` environment variable, the application has the following characteristics:
-- No rate limiting (it's always deactivated anyway, at least for now)

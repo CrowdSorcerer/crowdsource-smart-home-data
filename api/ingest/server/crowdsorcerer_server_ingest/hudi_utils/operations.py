@@ -1,17 +1,20 @@
 import json
 from datetime import datetime, timezone, timedelta
 from os import environ
+from unittest import TextTestRunner
 from uuid import UUID
 from urllib.error import URLError
 from typing import Any, Dict
 from sys import getsizeof
 
-import uwsgi
+import redis
 from flask_apscheduler import APScheduler
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import lit
 from py4j.java_gateway import Py4JJavaError
 from prometheus_client import CollectorRegistry, Counter, push_to_gateway
+
+from crowdsorcerer_server_ingest.hudi_utils.initialize import hudi_init
 
 
 
@@ -29,12 +32,9 @@ class Sensor:
         self.state = state
         self.attributes = attributes
 
-class HudiOperations:
+hudi_init()
 
-    # 2 items are reserved:
-    # - the 'null' value (inherent to the cache: https://uwsgi-docs.readthedocs.io/en/latest/Caching.html#a-sad-weird-strange-bad-note-about-the-maximum-number-of-items)
-    # - the 'keys' which is a set containing the stored UUIDs on the cache, so that we can look for them later
-    UWSGI_CACHE_SIZE = int(environ.get('UWSGI_CACHE_ITEMS', 3)) - 2
+class HudiOperations:
 
     SPARK = SparkSession.builder.getOrCreate()
     TABLE_NAME = 'hudi_ingestion'
@@ -88,8 +88,13 @@ class HudiOperations:
     REGISTRY = CollectorRegistry()
     INGEST_COUNTER = Counter('ingest_count', 'Number of ingestion (data upload) requests that have been successfully made.', registry=REGISTRY)
 
+    REDIS_HOST = environ.get('INGEST_REDIS_HOST', 'localhost')
+    REDIS_PORT = int(environ.get('INGEST_REDIS_PORT', '6379'))
+    REDIS_KEY_UUID_PREFIX = 'ingest:uuid:'
+    REDIS = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0, decode_responses=True)
+
     @classmethod
-    def insert_data(cls, data: Dict[str, Any], uuid: UUID):
+    def insert_data(cls, data: Dict[str, dict]):
         
         # for sensor_name, sensor_data in data.items():
             # sensor = Sensor(
@@ -106,15 +111,14 @@ class HudiOperations:
         #     if not valid_data_key(key):
         #         raise InvalidJSONKey()
 
-        data['uuid'] = str(uuid)
-        
-        dt = datetime.now(tz=cls.TIMEZONE)
-        data['path_year'] = dt.year
-        data['path_month'] = dt.month
-        data['path_day'] = dt.day
-        data['ts'] = dt.timestamp()
+        if not data:
+            return
 
-        df = cls.SPARK.createDataFrame([data])
+        print(type(data))
+        print(data)
+        data = [{'uuid': uuid, **data} for uuid, data in data.items()]
+
+        df = cls.SPARK.createDataFrame(data)
 
         for column in df.schema.fields:
             if (column.name, column.dataType) not in cls.INGESTED_COLUMNS:
@@ -166,30 +170,20 @@ class HudiOperations:
             .save(cls.BASE_PATH)
 
     @classmethod
-    def insert_temp(cls, uuid, data):
-        uuid_str = str(uuid)
-        
-        keys = json.loads(uwsgi.cache_get('keys'))
-        if len(keys) >= cls.UWSGI_CACHE_SIZE:
-            cls.insert_hudi()
-            keys.clear()
+    def insert_into_redis(cls, uuid: UUID, data: dict):
+        dt = datetime.now(tz=cls.TIMEZONE)
+        data['path_year'] = dt.year
+        data['path_month'] = dt.month
+        data['path_day'] = dt.day
+        data['ts'] = dt.timestamp()
+        cls.REDIS.set(cls.REDIS_KEY_UUID_PREFIX + str(uuid), json.dumps(data))
 
-        if uuid_str not in keys:
-            uwsgi.cache_update('keys', json.dumps(keys + [uuid_str]))
-
-        uwsgi.cache_set(uuid_str, json.dumps(data))
-    
     @classmethod
-    def insert_hudi(cls):
-        d = cache_extract()
-        uwsgi.cache_update('keys', b'[]')
-    
-        print(*[str(item) + "\n" for item in d.items()])
-    
+    def redis_into_hudi(cls):
+        keys = cls.REDIS.keys(cls.REDIS_KEY_UUID_PREFIX + '*')
+        data_to_insert = cls.REDIS.mget(keys)
 
+        cls.REDIS.flushall()
 
-def cache_extract() -> Dict[str, dict]:
-    keys = json.loads(uwsgi.cache_get('keys'))
-
-    print('keys:', keys)
-    return {key:json.loads(uwsgi.cache_get(key)) for key in keys}
+        cls.insert_data( {k.split(':')[-1]:json.loads(v) for k,v in zip(keys, data_to_insert)} )
+        

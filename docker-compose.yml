@@ -49,7 +49,6 @@ services:
     environment:
       - APP_NAME=Ingest_Api
       - INGEST_BASE_PATH=$INGEST_BASE_PATH
-      - INGEST_DEBUG=${INGEST_DEBUG-false}
       - INGEST_PUSHGATEWAY_HOST=pushgateway
       - INGEST_PUSHGATEWAY_PORT=9091
     expose:

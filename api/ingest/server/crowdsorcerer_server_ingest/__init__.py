@@ -1,12 +1,12 @@
 from os import environ
 from distutils.util import strtobool
+from readline import insert_text
 
 import connexion
 # from flask_limiter import Limiter
 # from flask_limiter.util import get_remote_address
 from flask_cors import CORS
 from flask_apscheduler import APScheduler
-import uwsgi
 
 from crowdsorcerer_server_ingest import encoder
 from crowdsorcerer_server_ingest.hudi_utils.operations import HudiOperations
@@ -14,10 +14,6 @@ from .hudi_utils.initialize import hudi_init
 from .exceptions import *
 
 
-
-DEBUG = bool(strtobool( environ.get('INGEST_DEBUG', 'false') ))
-
-hudi_init()
 
 app = connexion.App(__name__, specification_dir='./swagger/')
 app.app.json_encoder = encoder.JSONEncoder
@@ -43,14 +39,9 @@ app.add_error_handler(**INVALID_JSON_KEY)
 # Periodic Hudi insertions
 scheduler = APScheduler()
 scheduler.init_app(app.app)
-scheduler.add_job(id='insert_hudi', func=HudiOperations.insert_hudi, trigger='interval', seconds=10)
+scheduler.add_job(id='insert_data', func=HudiOperations.redis_into_hudi, trigger='interval', minutes=5)
 
 scheduler.start()
-
-uwsgi.cache_set('keys', b'[]')
-# print('Stuff:', *[k + "\n" for k in uwsgi.__dict__.keys()])
-# print('Number of bytes written:', uwsgi.cache_set('kk', b'woah'))
-# print('What was read:', uwsgi.cache_get('kk'))
 
 
 
