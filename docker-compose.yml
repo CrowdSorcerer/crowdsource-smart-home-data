@@ -46,7 +46,7 @@ services:
     expose:
       - 8443
     labels:
-      - traefik.enable=true"
+      - traefik.enable=true
       - traefik.http.routers.ingest.entrypoints=websecure
       - traefik.http.routers.ingest.rule=Host(`smarthouse.av.it.pt`) && PathPrefix(`/api/ingest`)
       - traefik.http.routers.ingest.tls=true
@@ -70,15 +70,15 @@ services:
     image: traefik
     # Enables the web UI and tells Traefik to listen to docker
     command: 
-      #- "--api.insecure=true" # DONT
+      #- --api.insecure=true # DONT
       - --providers.docker
       - --providers.docker.exposedbydefault=false
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
 
       # Redirect to use SSL
-      #- "--entrypoints.web.http.redirections.entrypoint.to=websecure"
-      #- "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      #- --entrypoints.web.http.redirections.entrypoint.to=websecure
+      #- --entrypoints.web.http.redirections.entrypoint.scheme=https
 
       # SSL Lets encrypt
       - --certificatesResolvers.sample.acme.tlsChallenge=true
