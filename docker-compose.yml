@@ -83,7 +83,7 @@ services:
       # SSL Lets encrypt
       - --certificatesResolvers.sample.acme.tlsChallenge=true
       - --certificatesResolvers.sample.acme.email=rodrigoflima@ua.pt
-      - --certresolv.myresolver.acme.storage=/shared/acme.json
+      - --certificatesResolvers.sample.acme.storage=/shared/acme.json
       - --certificatesResolvers.sample.acme.httpChallenge.entryPoint=web
       # Staging server to mimic production (to not get banned due to rate limiting)
       - --certificatesResolvers.sample.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory
