@@ -1,9 +1,13 @@
+import json
 from datetime import datetime, timezone, timedelta
 from os import environ
 from uuid import UUID
 from urllib.error import URLError
 from typing import Any, Dict
+from sys import getsizeof
 
+import uwsgi
+from flask_apscheduler import APScheduler
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import lit
 from py4j.java_gateway import Py4JJavaError
@@ -26,6 +30,11 @@ class Sensor:
         self.attributes = attributes
 
 class HudiOperations:
+
+    # 2 items are reserved:
+    # - the 'null' value (inherent to the cache: https://uwsgi-docs.readthedocs.io/en/latest/Caching.html#a-sad-weird-strange-bad-note-about-the-maximum-number-of-items)
+    # - the 'keys' which is a set containing the stored UUIDs on the cache, so that we can look for them later
+    UWSGI_CACHE_SIZE = int(environ.get('UWSGI_CACHE_ITEMS', 3)) - 2
 
     SPARK = SparkSession.builder.getOrCreate()
     TABLE_NAME = 'hudi_ingestion'
@@ -155,3 +164,32 @@ class HudiOperations:
             .options(**cls.HUDI_DELETE_OPTIONS) \
             .mode('append') \
             .save(cls.BASE_PATH)
+
+    @classmethod
+    def insert_temp(cls, uuid, data):
+        uuid_str = str(uuid)
+        
+        keys = json.loads(uwsgi.cache_get('keys'))
+        if len(keys) >= cls.UWSGI_CACHE_SIZE:
+            cls.insert_hudi()
+            keys.clear()
+
+        if uuid_str not in keys:
+            uwsgi.cache_update('keys', json.dumps(keys + [uuid_str]))
+
+        uwsgi.cache_set(uuid_str, json.dumps(data))
+    
+    @classmethod
+    def insert_hudi(cls):
+        d = cache_extract()
+        uwsgi.cache_update('keys', b'[]')
+    
+        print(*[str(item) + "\n" for item in d.items()])
+    
+
+
+def cache_extract() -> Dict[str, dict]:
+    keys = json.loads(uwsgi.cache_get('keys'))
+
+    print('keys:', keys)
+    return {key:json.loads(uwsgi.cache_get(key)) for key in keys}
