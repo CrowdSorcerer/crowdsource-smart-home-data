@@ -1,6 +1,6 @@
 from os import environ
 from datetime import date, timedelta
-from typing import List
+from typing import Dict, List, Tuple
 from functools import reduce
 from operator import ior
 
@@ -33,7 +33,7 @@ class HudiOperations:
     METADATA_COLUMNS_NAMES = ['id', 'year', 'month', 'day']
 
     @classmethod
-    def get_data(cls, date_from: date=None, date_to: date=None, types: List[str]=None, units: List[str]=None) -> DataFrame:
+    def get_data(cls, date_from: date=None, date_to: date=None, types: List[str]=None, units: List[str]=None) -> Tuple[DataFrame, Dict[str, str]]:
         df = cls.SPARK.read.format('hudi').load(cls.BASE_PATH)
 
         df = df \
@@ -101,7 +101,17 @@ class HudiOperations:
         data_columns_names = [name for _, name in data_columns]
         dfp[data_columns_names] = dfp[data_columns_names].applymap(pandas_row_list_to_dict_list)
 
-        return dfp
+        year_min = dfp['year'].min()
+        month_min = dfp[dfp['year'] == year_min]['month'].min()
+        day_min = dfp[(dfp['year'] == year_min) & (dfp['month'] == month_min)]['day'].min()
+        date_min = date(year=year_min, month=month_min, day=day_min)
+
+        return dfp, {
+            'date_from': str(date_min if not date_from or date_from < date_min else date_from),
+            'date_to': str(date_to),
+            'types': 'any' if not types else str(types),
+            'units': 'any' if not units else str(units)
+        }
 
 
     @classmethod
