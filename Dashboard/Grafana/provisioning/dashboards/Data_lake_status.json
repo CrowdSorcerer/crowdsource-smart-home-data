@@ -32,6 +32,7 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
+      "description": "Rate of data uploads within an hour.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -112,7 +113,7 @@
           "refId": "A"
         }
       ],
-      "title": "Ingestion rate",
+      "title": "Ingest upload rate",
       "type": "timeseries"
     },
     {
@@ -120,7 +121,7 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "description": "Time taken on the ingestion (insert) jobs",
+      "description": "Time taken on the ingestion (insert) jobs in seconds.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -195,7 +196,7 @@
             "type": "prometheus",
             "uid": "PBFA97CFB590B2093"
           },
-          "expr": "hudi_ingestion_commit_duration",
+          "expr": "hudi_ingestion_commit_duration / 1000",
           "refId": "A"
         }
       ],
@@ -296,6 +297,7 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
+      "description": "The number of distinct users on the data lake.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -382,7 +384,7 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "description": "The amount of distinct data producers (e.g. sensors), the same as the number of data columns on the resulting dataset",
+      "description": "The amount of distinct data producers (e.g. sensors), the same as the number of data columns on the resulting dataset.",
       "fieldConfig": {
         "defaults": {
           "color": {
