@@ -42,7 +42,7 @@ then
     exit 2
 fi
 
-echo "Pushing metrics:"
+echo "Pushing metrics:
 $metrics" > pushed_metrics.txt
 
 cat <<EOF | curl --data-binary @- http://${pushgateway_host}:${pushgateway_port}/metrics/job/${job_name}/instance/${instance_name}
