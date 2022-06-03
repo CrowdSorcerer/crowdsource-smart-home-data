@@ -2,9 +2,9 @@ from os import environ
 from datetime import date, timedelta
 from typing import List
 from functools import reduce
-from operator import iand, ior
+from operator import ior
 
-from pyspark.sql import SparkSession, Column
+from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, regexp_replace
 from pandas import DataFrame, Series
 
@@ -103,6 +103,7 @@ class HudiOperations:
 
         return dfp
 
+
     @classmethod
     def _clean_uuids(cls, uuid: str):
         if uuid not in cls.UUID_MAP:
@@ -110,5 +111,7 @@ class HudiOperations:
             cls.UUID_MAP_COUNTER += 1
         return cls.UUID_MAP[uuid]
     
+
+
 def pandas_row_list_to_dict_list(elem):
     return [intraRow.asDict() for intraRow in elem] if elem else None
