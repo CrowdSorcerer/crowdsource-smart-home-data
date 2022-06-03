@@ -78,9 +78,13 @@ class HudiOperations:
             data_columns = [ (col, name) for col, name in data_columns if name in df.columns ]
             
 
-        for column, _ in data_columns:
+        to_remove = []
+        for idx, (column, _) in enumerate(data_columns):
             if df.select(column).dropna().count() == 0:
                 df = df.drop(column)
+                to_remove.append(idx)
+        for idx in to_remove:
+            data_columns.pop(idx)
 
         if len(df.columns) == len(metadata_columns) or df.count() == 0:
             raise EmptyDataset()
@@ -94,7 +98,8 @@ class HudiOperations:
 
         dfp['id'] = col_id.map(cls._clean_uuids)
 
-        print('Pandas df:', dfp)
+        data_columns_names = [name for _, name in data_columns]
+        dfp[data_columns_names] = dfp[data_columns_names].applymap(pandas_row_list_to_dict_list)
 
         return dfp
 
@@ -104,3 +109,6 @@ class HudiOperations:
             cls.UUID_MAP[uuid] = cls.UUID_MAP_COUNTER
             cls.UUID_MAP_COUNTER += 1
         return cls.UUID_MAP[uuid]
+    
+def pandas_row_list_to_dict_list(elem):
+    return [intraRow.asDict() for intraRow in elem] if elem else None
