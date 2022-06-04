@@ -49,16 +49,20 @@ def extract(formats: List[str], date_from=None, date_to=None, types=None, units=
     now = datetime.now(tz=timezone(timedelta(hours=0)))
     yesterday = date.today() - timedelta(days=1)
     resources = [{
-        'package-id': BASE_METADATA['name'],
+        'package_id': BASE_METADATA['name'],
         'url': 'upload-' + format_,
-        'format': format_,
-        'created': str(now),
-        'last_modified': str(yesterday)
+        'format': format_
     } for format_ in formats]
     dataset_metadata = json.dumps({
         **BASE_METADATA,
         'resources': resources,
-        'extras': [extraction_details]
+        'extras': [
+            {
+                'key': k,
+                'value': v
+            }
+            for k,v in extraction_details.items()
+        ]
     }).encode(encoding='utf-8')
 
     zipped_data = io.BytesIO()
