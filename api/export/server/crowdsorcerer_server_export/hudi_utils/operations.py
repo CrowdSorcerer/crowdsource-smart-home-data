@@ -1,10 +1,10 @@
 from os import environ
 from datetime import date, timedelta
-from typing import List
+from typing import Dict, List, Tuple
 from functools import reduce
-from operator import iand, ior
+from operator import ior
 
-from pyspark.sql import SparkSession, Column
+from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, regexp_replace
 from pandas import DataFrame, Series
 
@@ -33,7 +33,7 @@ class HudiOperations:
     METADATA_COLUMNS_NAMES = ['id', 'year', 'month', 'day']
 
     @classmethod
-    def get_data(cls, date_from: date=None, date_to: date=None, types: List[str]=None, units: List[str]=None) -> DataFrame:
+    def get_data(cls, date_from: date=None, date_to: date=None, types: List[str]=None, units: List[str]=None) -> Tuple[DataFrame, Dict[str, str]]:
         df = cls.SPARK.read.format('hudi').load(cls.BASE_PATH)
 
         df = df \
@@ -78,9 +78,13 @@ class HudiOperations:
             data_columns = [ (col, name) for col, name in data_columns if name in df.columns ]
             
 
-        for column, _ in data_columns:
+        to_remove = []
+        for idx, (column, _) in enumerate(data_columns):
             if df.select(column).dropna().count() == 0:
                 df = df.drop(column)
+                to_remove.append(idx)
+        for idx in to_remove:
+            data_columns.pop(idx)
 
         if len(df.columns) == len(metadata_columns) or df.count() == 0:
             raise EmptyDataset()
@@ -94,9 +98,21 @@ class HudiOperations:
 
         dfp['id'] = col_id.map(cls._clean_uuids)
 
-        print('Pandas df:', dfp)
+        data_columns_names = [name for _, name in data_columns]
+        dfp[data_columns_names] = dfp[data_columns_names].applymap(pandas_row_list_to_dict_list)
 
-        return dfp
+        year_min = dfp['year'].min()
+        month_min = dfp[dfp['year'] == year_min]['month'].min()
+        day_min = dfp[(dfp['year'] == year_min) & (dfp['month'] == month_min)]['day'].min()
+        date_min = date(year=year_min, month=month_min, day=day_min)
+
+        return dfp, {
+            'date_from': str(date_min if not date_from or date_from < date_min else date_from),
+            'date_to': str(date_to),
+            'types': 'any' if not types else str(types),
+            'units': 'any' if not units else str(units)
+        }
+
 
     @classmethod
     def _clean_uuids(cls, uuid: str):
@@ -104,3 +120,8 @@ class HudiOperations:
             cls.UUID_MAP[uuid] = cls.UUID_MAP_COUNTER
             cls.UUID_MAP_COUNTER += 1
         return cls.UUID_MAP[uuid]
+    
+
+
+def pandas_row_list_to_dict_list(elem):
+    return [intraRow.asDict() for intraRow in elem] if elem else None
