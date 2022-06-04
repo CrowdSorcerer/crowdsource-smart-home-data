@@ -13,17 +13,33 @@ info:
         #url: link
         #email: apiteam@swagger.io
 paths:
-    /{format}:
+    /formats:
+        get:
+            operationId: available_formats
+            responses:
+                '200':
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                            example: json, csv, xml
+                    description: Successfully returned the list of available formats
+            summary: List of the available extraction formats
+            tags:
+                - data_extraction
+    /dataset:
         get:
             operationId: data_extraction
             parameters:
                 -
-                    name: format
-                    in: path
-                    description: The case insensitive string representing the dataset's output format
+                    name: formats
+                    in: query
+                    description: The case insensitive strings representing the dataset's output formats
                     required: true
                     schema:
-                        type: string
+                        type: array
+                        items:
+                            type: string
                 -
                     name: date_from
                     in: query
@@ -89,7 +105,7 @@ tags:
 
             Extract the data present in the data lake into CKAN compliant formats. The data returned is compressed.
             For now, the following formats are supported:
+            - JSON (recommended)
             - XML
             - CSV
-            - JSON
         name: data_extraction

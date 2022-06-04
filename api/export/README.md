@@ -1,8 +1,8 @@
 # Export API
 
 API meant for extracting the Smart Home data ingested. The following CKAN compliant formats are supported:
+- JSON (recommended)
 - XML
-- JSON
 - CSV
 
 The datasets are zipped. The available query parameters are detailed in the `server` package.
