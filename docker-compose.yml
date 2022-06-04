@@ -51,6 +51,8 @@ services:
       - INGEST_BASE_PATH=$INGEST_BASE_PATH
       - INGEST_PUSHGATEWAY_HOST=pushgateway
       - INGEST_PUSHGATEWAY_PORT=9091
+      - INGEST_REDIS_HOST=redis
+      - INGEST_REDIS_PASSWORD=$REDIS_PASSWORD
     expose:
       - 8443
     labels:
