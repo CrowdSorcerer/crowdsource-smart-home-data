@@ -119,8 +119,6 @@ class HudiOperations:
         if not data:
             return
 
-        print(type(data))
-        print(data)
         data = [{'uuid': uuid, **data} for uuid, data in data.items()]
 
         df = cls.SPARK.createDataFrame(data)
