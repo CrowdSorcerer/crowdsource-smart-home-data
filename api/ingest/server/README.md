@@ -18,6 +18,9 @@ The server uses PySpark to communicate with the data lake. It is included in `re
 | INGEST_BASE_PATH | the path where the application should store the data | `hdfs://<IP>:<PORT>/` | `file:///tmp/` |
 | INGEST_PUSHGATEWAY_HOST | host of the Pushgateway instance to which metrics will be sent | `localhost` | `localhost` |
 | INGEST_PUSHGATEWAY_PORT | port of the Pushgateway instance to which metrics will be sent | `9091` | `9091` |
+| INGEST_REDIS_HOST | host of the Redis instance to which requests will be cached | `localhost` | `localhost` |
+| INGEST_REDIS_PORT | port of the Redis instance to which requests will be cached | `6379` | `6379` |
+| INGEST_REDIS_PASSWORD | password of the Redis instance to which requests will be cached | `secret` | `` |
 | PYSPARK_PYTHON | the Python binary to use for PySpark | `/usr/bin/python3` | None |
 
 Note: `PYSPARK_PYTHON` may have to be set if the API is running on a virtual environment
