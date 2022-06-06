@@ -33,7 +33,7 @@ def data_upload(body):  # noqa: E501
 
     data = decompress_data(body)
     
-    HudiOperations.insert_data(data, home_uuid)
+    HudiOperations.insert_into_redis(home_uuid, data)
 
     return 'Successfully uploaded the data', OK
 

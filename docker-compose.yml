@@ -33,6 +33,15 @@ services:
     ports:
       - 3000:3000
 
+  redis:
+    image: "redis:alpine"
+    restart: always
+    command: redis-server --requirepass $REDIS_PASSWORD
+    environment:
+     - REDIS_REPLICATION_MODE=master
+    ports:
+     - "6379:6379"
+
   ingest:
     build: ./api/ingest/server
     container_name: ingest_api
@@ -40,9 +49,10 @@ services:
     environment:
       - APP_NAME=Ingest_Api
       - INGEST_BASE_PATH=$INGEST_BASE_PATH
-      - INGEST_DEBUG=${INGEST_DEBUG-false}
       - INGEST_PUSHGATEWAY_HOST=pushgateway
       - INGEST_PUSHGATEWAY_PORT=9091
+      - INGEST_REDIS_HOST=redis
+      - INGEST_REDIS_PASSWORD=$REDIS_PASSWORD
     expose:
       - 8443
     labels:
@@ -51,6 +61,8 @@ services:
       - traefik.http.routers.ingest.rule=Host(`smarthouse.av.it.pt`) && PathPrefix(`/api/ingest`)
       - traefik.http.routers.ingest.tls=true
       - traefik.http.routers.ingest.tls.certresolver=sample
+    depends_on:
+      - redis
 
   website:
     build: ./website
@@ -86,7 +98,7 @@ services:
       - --certificatesResolvers.sample.acme.storage=/shared/acme.json
       - --certificatesResolvers.sample.acme.httpChallenge.entryPoint=web
       # Staging server to mimic production (to not get banned due to rate limiting)
-      #- --certificatesResolvers.sample.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory
+      - --certificatesResolvers.sample.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory
     volumes:
       # So that Traefik can listen to the Docker events
       - /var/run/docker.sock:/var/run/docker.sock:ro
