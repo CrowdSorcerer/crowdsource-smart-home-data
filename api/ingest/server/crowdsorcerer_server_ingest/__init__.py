@@ -47,7 +47,6 @@ scheduler.start()
 
 print('Environment variables set')
 print('INGEST_BASE_PATH:', environ.get('INGEST_BASE_PATH'))
-print('INGEST_DEBUG:', environ.get('INGEST_DEBUG'))
 print('INGEST_PUSHGATEWAY_HOST:', environ.get('INGEST_PUSHGATEWAY_HOST'))
 print('INGEST_PUSHGATEWAY_PORT:', environ.get('INGEST_PUSHGATEWAY_PORT'))
 print('INGEST_REDIS_HOST:', environ.get('INGEST_REDIS_HOST'))
