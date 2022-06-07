@@ -64,6 +64,24 @@ services:
     depends_on:
       - redis
 
+  export:
+    build: ./api/export/server
+    container_name: export_api
+    restart: always
+    environment:
+      - APP_NAME=Export_Api
+      - EXPORT_BASE_PATH=$EXPORT_BASE_PATH
+      - EXPORT_PUSHGATEWAY_HOST=pushgateway
+      - EXPORT_PUSHGATEWAY_PORT=9091
+    expose:
+      - 8443
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.export.entrypoints=websecure
+      - traefik.http.routers.export.rule=Host(`smarthouse.av.it.pt`) && PathPrefix(`/api/export`)
+      - traefik.http.routers.export.tls=true
+      - traefik.http.routers.export.tls.certresolver=sample
+
   website:
     build: ./website
     container_name: website
@@ -112,6 +130,7 @@ services:
       #- 8080:8080               # DONT
     depends_on:
       - ingest
+      - export
       - website
     labels:
       - traefik.http.routers.traefik.tls=true
