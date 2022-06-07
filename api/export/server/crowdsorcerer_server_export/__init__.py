@@ -20,5 +20,5 @@ app.add_error_handler(**EMTPY_DATASET)
 
 
 
-print('INGEST_BASE_PATH:', environ.get('INGEST_BASE_PATH'))
+print('EXPORT_BASE_PATH:', environ.get('EXPORT_BASE_PATH'))
 print('PYSPARK_PYTHON:', environ.get('PYSPARK_PYTHON'))

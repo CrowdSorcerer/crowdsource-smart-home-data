@@ -70,9 +70,7 @@ services:
     restart: always
     environment:
       - APP_NAME=Export_Api
-      - EXPORT_BASE_PATH=$EXPORT_BASE_PATH
-      - EXPORT_PUSHGATEWAY_HOST=pushgateway
-      - EXPORT_PUSHGATEWAY_PORT=9091
+      - EXPORT_BASE_PATH=$INGEST_BASE_PATH
     expose:
       - 8443
     labels:

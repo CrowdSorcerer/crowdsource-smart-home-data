@@ -15,7 +15,7 @@ The server uses PySpark to communicate with the data lake. It is included in `re
 
 | Name | Description | Examples | Default |
 |------|-------------|----------|---------|
-| INGEST_BASE_PATH | the path from where the application should obtain the data | `hdfs://<IP>:<PORT>/` | `file:///tmp/` |
+| EXPORT_BASE_PATH | the path from where the application should obtain the data | `hdfs://<IP>:<PORT>/` | `file:///tmp/` |
 | PYSPARK_PYTHON | the Python binary to use for PySpark | `/usr/bin/python3` | None |
 
 Note: `PYSPARK_PYTHON` may have to be set if the API is running on a virtual environment

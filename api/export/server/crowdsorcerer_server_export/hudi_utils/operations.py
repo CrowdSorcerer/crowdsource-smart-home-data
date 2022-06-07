@@ -16,7 +16,7 @@ class HudiOperations:
 
     SPARK = SparkSession.builder.getOrCreate()
     TABLE_NAME = 'hudi_ingestion'
-    BASE_PATH = environ.get('INGEST_BASE_PATH', 'file:///tmp') + '/' + TABLE_NAME
+    BASE_PATH = environ.get('EXPORT_BASE_PATH', 'file:///tmp') + '/' + TABLE_NAME
 
     HUDI_BASE_OPTIONS = {
         'hoodie.table.name': TABLE_NAME,
