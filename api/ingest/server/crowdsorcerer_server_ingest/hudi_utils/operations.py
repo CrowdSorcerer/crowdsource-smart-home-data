@@ -1,14 +1,11 @@
 import json
-from datetime import datetime, timezone, timedelta
-from os import environ
-from unittest import TextTestRunner
 from uuid import UUID
+from os import environ
+from typing import Dict
 from urllib.error import URLError
-from typing import Any, Dict
-from sys import getsizeof
+from datetime import datetime, timezone, timedelta
 
 import redis
-from flask_apscheduler import APScheduler
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import lit
 from py4j.java_gateway import Py4JJavaError
@@ -86,7 +83,7 @@ class HudiOperations:
     }
 
     REGISTRY = CollectorRegistry()
-    INGEST_COUNTER = Counter('ingest_count', 'Number of ingestion (data upload) requests that have been successfully made.', registry=REGISTRY)
+    INGEST_UPLOAD_COUNTER = Counter('ingest_upload_count', 'Number of ingestion (data upload) requests that have been successfully made.', registry=REGISTRY)
 
     REDIS_HOST = environ.get('INGEST_REDIS_HOST', 'localhost')
     REDIS_PORT = int(environ.get('INGEST_REDIS_PORT', '6379'))
@@ -137,12 +134,6 @@ class HudiOperations:
             .mode('append') \
             .save(cls.BASE_PATH)
 
-        cls.INGEST_COUNTER.inc()
-        try:
-            push_to_gateway(f'{cls.PUSHGATEWAY_HOST}:{cls.PUSHGATEWAY_PORT}', job='hudi_ingest_counter_job', registry=cls.REGISTRY)
-        except URLError:
-            print('Could not push metrics to the Pushgateway server')
-
 
 
     @classmethod
@@ -172,6 +163,8 @@ class HudiOperations:
             .mode('append') \
             .save(cls.BASE_PATH)
 
+
+
     @classmethod
     def insert_into_redis(cls, uuid: UUID, data: dict):
         dt = datetime.now(tz=cls.TIMEZONE)
@@ -180,6 +173,12 @@ class HudiOperations:
         data['path_day'] = dt.day
         data['ts'] = dt.timestamp()
         cls.REDIS.set(cls.REDIS_KEY_UUID_PREFIX + str(uuid), json.dumps(data))
+
+        cls.INGEST_UPLOAD_COUNTER.inc()
+        try:
+            push_to_gateway(f'{cls.PUSHGATEWAY_HOST}:{cls.PUSHGATEWAY_PORT}', job='hudi_ingest_counter_job', registry=cls.REGISTRY)
+        except URLError:
+            print('Could not push metrics to the Pushgateway server')
 
     @classmethod
     def redis_into_hudi(cls):
