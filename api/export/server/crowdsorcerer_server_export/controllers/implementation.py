@@ -17,7 +17,7 @@ BASE_METADATA = {
     'name': 'crowdsorcerer-extract',
     'title': 'CrowdSorcerer extract',
     'author': 'CrowdSorcerer',
-    'license_id': 'cc-zero',
+    'license_id': 'cc-by-sa',
     'notes': 'Crowdsourced smart home data collected from the CrowdSorcerer open source project. More info on https://smarthouse.av.it.pt'
 }
 
