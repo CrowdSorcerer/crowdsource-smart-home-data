@@ -5,7 +5,6 @@ from functools import reduce
 from operator import ior
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import from_json, regexp_replace
 from pandas import DataFrame, Series
 
 from crowdsorcerer_server_export.exceptions import EmptyDataset
@@ -27,8 +26,8 @@ class HudiOperations:
         'hoodie.write.markers.type': 'direct',
     }
 
-    UUID_MAP = {}
-    UUID_MAP_COUNTER = 0
+    uuid_map = {}
+    uuid_map_counter = 0
 
     METADATA_COLUMNS_NAMES = ['id', 'year', 'month', 'day']
 
@@ -41,16 +40,24 @@ class HudiOperations:
             .withColumnRenamed('uuid', 'id') \
             .withColumnRenamed('path_year', 'year') \
             .withColumnRenamed('path_month', 'month') \
-            .withColumnRenamed('path_day', 'day')
+            .withColumnRenamed('path_day', 'day') \
+
+        # Limit the exported data to the data that is properly structured and can be predictably worked with
+        structured_data_columns = [
+            field.name for field in df.schema.fields \
+            if isinstance(field.dataType.jsonValue(), dict) \
+                and field.dataType.jsonValue()['type'] == 'array' \
+                and field.dataType.jsonValue()['elementType']['type'] == 'struct'
+        ]
 
         yesterday = date.today() - timedelta(days=1)
         date_to = yesterday if not date_to or date_to > yesterday else date_to
 
         metadata_columns = [ (df[column_name], column_name) for column_name in cls.METADATA_COLUMNS_NAMES ]
-        data_columns = [ (col, name) for col, name in zip(df, df.columns) if name not in cls.METADATA_COLUMNS_NAMES ]
+        data_columns = [ (col, name) for col, name in zip(df, df.columns) if name in structured_data_columns ]
 
         if date_from:
-            df = df.where(f'path_year>{date_from.year} \
+            df = df.where(f'path_year>{date_from.yecls.METADATA_COLUMNS_NAMESar} \
                 OR (path_year={date_from.year} AND path_month>{date_from.month}) \
                 OR (path_year={date_from.year} AND path_month={date_from.month} AND path_day>={date_from.day})')
         
@@ -64,19 +71,7 @@ class HudiOperations:
             df = df.select([ col for col, _ in (metadata_columns + data_columns) ])
 
         if units:
-            units_columns = [(from_json(regexp_replace(column[0].attributes, '=(.*?)([,}])', ':"$1"$2'), 'unit_of_measurement STRING', {'allowUnquotedFieldNames': True}).unit_of_measurement.alias(column_name), column_name) for column, column_name in data_columns]
-            valid_data_columns = []
-            invalid_data_columns_names = []
-            for column, column_name in units_columns:
-                if df.select(column).dropna().count() == 0:
-                    invalid_data_columns_names.append(column_name)
-                else:
-                    valid_data_columns.append(column)
-            df = df \
-                    .drop(*invalid_data_columns_names) \
-                    .where( reduce(ior, [ column.isin(units) for column in valid_data_columns ]) )
-            data_columns = [ (col, name) for col, name in data_columns if name in df.columns ]
-            
+            df = df.where( reduce(ior, [ column[0].attributes.unit_of_measurement.isin(units) for column, _ in data_columns ]) )
 
         to_remove = []
         for idx, (column, _) in enumerate(data_columns):
@@ -116,10 +111,10 @@ class HudiOperations:
 
     @classmethod
     def _clean_uuids(cls, uuid: str):
-        if uuid not in cls.UUID_MAP:
-            cls.UUID_MAP[uuid] = cls.UUID_MAP_COUNTER
-            cls.UUID_MAP_COUNTER += 1
-        return cls.UUID_MAP[uuid]
+        if uuid not in cls.uuid_map:
+            cls.uuid_map[uuid] = cls.uuid_map_counter
+            cls.uuid_map_counter += 1
+        return cls.uuid_map[uuid]
     
 
 

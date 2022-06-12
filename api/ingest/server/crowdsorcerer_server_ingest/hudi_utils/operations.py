@@ -1,4 +1,5 @@
 import json
+import re
 from uuid import UUID
 from os import environ
 from typing import Dict
@@ -22,12 +23,15 @@ def valid_data_key(key: str) -> bool:
 
 class Sensor:
 
-    def __init__(self, entity_id: str, last_changed: str, last_updated: str, state: str, attributes: dict):
+    def __init__(self, entity_id: str, last_changed: str, last_updated: str, state: str, attributes: str):
         self.entity_id = entity_id
         self.last_changed = last_changed
         self.last_updated = last_updated
         self.state = state
-        self.attributes = attributes
+        # may be simplified?
+        self.attributes = json.loads( re.sub(r'([{,])\s*(.*?):', r'\1"\2":', re.sub(r'=(.*?)([,}])', r':"\1"\2', attributes)) )
+
+
 
 hudi_init()
 
@@ -96,27 +100,33 @@ class HudiOperations:
         password=environ.get('INGEST_REDIS_PASSWORD', None))
 
     @classmethod
-    def insert_data(cls, data: Dict[str, dict]):
+    def insert_data(cls, data: Dict[str, Dict[str, Sensor]]):
         
-        # for sensor_name, sensor_data in data.items():
-            # sensor = Sensor(
-            #     entity_id=sensor_data['entity_id'],
-            #     last_changed=sensor_data['last_changed'],
-            #     last_updated=sensor_data['last_updated'],
-            #     state=sensor_data['state'],
-            #     attributes=sensor_data['attributes']
-            # )
-            # data[sensor_name] = sensor
-            # data[sensor_name.replace('.', '_')] = data.pop(sensor_name)
-
-        # for key in data:
-        #     if not valid_data_key(key):
-        #         raise InvalidJSONKey()
-
         if not data:
             return
 
-        data = [{'uuid': uuid, **data} for uuid, data in data.items()]
+        for user_data in data.values():
+            user_data_keys = set(user_data.keys())
+            for data_key in user_data_keys:
+                # Parquet tables (the way the data is stored) don't allow for the '.' character
+                data_key_normalized = data_key.replace('.', '_')
+                data_value = user_data.pop(data_key)
+                # If normalized key will replace a legitimate key, then ignore the normalized one
+                if data_key_normalized != data_key and data_key_normalized in user_data_keys:
+                    continue
+
+                # We try to structure the data properly for easier exportation
+                # If that can't be done, the data is stored as-is anyway, since this is a data lake
+                if isinstance(data_value, list):
+                    try:
+                        data_value = [Sensor(**data_value_instance) for data_value_instance in data_value]
+                    except Exception as ex:
+                        print('Could not properly structure data because:', ex)
+                        pass
+                
+                user_data[data_key_normalized] = data_value                    
+
+        data = [{'uuid': uuid, **d} for uuid, d in data.items()]
 
         df = cls.SPARK.createDataFrame(data)
 
@@ -185,7 +195,8 @@ class HudiOperations:
         keys = cls.REDIS.keys(cls.REDIS_KEY_UUID_PREFIX + '*')
         data_to_insert = cls.REDIS.mget(keys)
 
-        cls.REDIS.flushall()
-
         cls.insert_data( {k.split(':')[-1]:json.loads(v) for k,v in zip(keys, data_to_insert)} )
+
+        for key in keys:
+            cls.REDIS.delete(key)
         

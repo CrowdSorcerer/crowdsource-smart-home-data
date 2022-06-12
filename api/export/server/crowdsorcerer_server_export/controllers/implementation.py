@@ -47,7 +47,6 @@ def extract(formats: List[str], date_from=None, date_to=None, types=None, units=
     )
 
     now = datetime.now(tz=timezone(timedelta(hours=0)))
-    yesterday = date.today() - timedelta(days=1)
     resources = [{
         'package_id': BASE_METADATA['name'],
         'url': 'upload-' + format_,

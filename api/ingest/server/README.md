@@ -16,6 +16,7 @@ The server uses PySpark to communicate with the data lake. It is included in `re
 | Name | Description | Examples | Default |
 |------|-------------|----------|---------|
 | INGEST_BASE_PATH | the path where the application should store the data | `hdfs://<IP>:<PORT>/` | `file:///tmp/` |
+| INGEST_HUDI_RATE_MINUTES | the number of minutes between each hudi insertion batch job | `15` | `5` |
 | INGEST_PUSHGATEWAY_HOST | host of the Pushgateway instance to which metrics will be sent | `localhost` | `localhost` |
 | INGEST_PUSHGATEWAY_PORT | port of the Pushgateway instance to which metrics will be sent | `9091` | `9091` |
 | INGEST_REDIS_HOST | host of the Redis instance to which requests will be cached | `localhost` | `localhost` |
