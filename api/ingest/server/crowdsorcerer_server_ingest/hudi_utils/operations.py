@@ -9,6 +9,7 @@ from datetime import datetime, timezone, timedelta
 import redis
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import lit
+from pyspark.sql.types import StructType, StructField, ArrayType, StringType, LongType, FloatType
 from py4j.java_gateway import Py4JJavaError
 from prometheus_client import CollectorRegistry, Counter, push_to_gateway
 
@@ -18,18 +19,6 @@ from crowdsorcerer_server_ingest.hudi_utils.initialize import hudi_init
 
 def valid_data_key(key: str) -> bool:
     return not key.startswith('_hoodie')
-
-
-
-class Sensor:
-
-    def __init__(self, entity_id: str, last_changed: str, last_updated: str, state: str, attributes: str):
-        self.entity_id = entity_id
-        self.last_changed = last_changed
-        self.last_updated = last_updated
-        self.state = state
-        # may be simplified?
-        self.attributes = json.loads( re.sub(r'([{,])\s*(.*?):', r'\1"\2":', re.sub(r'=(.*?)([,}])', r':"\1"\2', attributes)) )
 
 
 
@@ -100,7 +89,7 @@ class HudiOperations:
         password=environ.get('INGEST_REDIS_PASSWORD', None))
 
     @classmethod
-    def insert_data(cls, data: Dict[str, Dict[str, Sensor]]):
+    def insert_data(cls, data: Dict[str, Dict[str, list]]):
         
         if not data:
             return
@@ -108,27 +97,39 @@ class HudiOperations:
         for user_data in data.values():
             user_data_keys = set(user_data.keys())
             for data_key in user_data_keys:
-                # Parquet tables (the way the data is stored) don't allow for the '.' character
-                data_key_normalized = data_key.replace('.', '_')
+                # Parquet tables (the way the data is stored) don't allow for some special characters
+                data_key_normalized = re.sub(r'[{}.]', '_', data_key)
                 data_value = user_data.pop(data_key)
                 # If normalized key will replace a legitimate key, then ignore the normalized one
                 if data_key_normalized != data_key and data_key_normalized in user_data_keys:
                     continue
 
-                # We try to structure the data properly for easier exportation
-                # If that can't be done, the data is stored as-is anyway, since this is a data lake
-                if isinstance(data_value, list):
-                    try:
-                        data_value = [Sensor(**data_value_instance) for data_value_instance in data_value]
-                    except Exception as ex:
-                        print('Could not properly structure data because:', ex)
-                        pass
-                
                 user_data[data_key_normalized] = data_value                    
 
         data = [{'uuid': uuid, **d} for uuid, d in data.items()]
 
-        df = cls.SPARK.createDataFrame(data)
+        data_sensor_keys = {key for obj in data for key in obj.keys()} - {'path_year', 'path_month', 'path_day', 'uuid', 'ts'}
+
+        df = cls.SPARK.createDataFrame(
+            data,
+            schema=StructType(
+                [
+                    StructField(k, ArrayType(StructType([
+                        StructField('entity_id', StringType(), nullable=False),
+                        StructField('last_changed', StringType(), nullable=False),
+                        StructField('last_updated', StringType(), nullable=False),
+                        StructField('state', StringType(), nullable=False),
+                        StructField('attributes', StringType(), nullable=False)
+                    ])), nullable=True)
+                for k in data_sensor_keys]
+                +
+                [StructField(k, LongType(), nullable=False) for k in {'path_year', 'path_month', 'path_day'}]
+                +
+                [StructField('ts', FloatType(), nullable=False)]
+                +
+                [StructField('uuid', StringType(), nullable=False)]
+            )
+        )
 
         for column in df.schema.fields:
             if (column.name, column.dataType) not in cls.INGESTED_COLUMNS:
