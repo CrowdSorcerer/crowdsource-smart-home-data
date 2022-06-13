@@ -149,10 +149,12 @@ class HudiOperations:
 
     @classmethod
     def delete_data(cls, uuid: UUID):
-        
+
         # Make sure that this is a valid UUID, especially since it will be formatted into a SQL string
         if not isinstance(uuid, UUID):
             raise ValueError("'uuid' argument is not of type UUID")
+
+        cls.REDIS.delete(cls.REDIS_KEY_UUID_PREFIX + str(uuid))
 
         cls.SPARK.read \
             .format('hudi') \
