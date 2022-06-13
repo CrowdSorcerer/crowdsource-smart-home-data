@@ -49,6 +49,7 @@ services:
     environment:
       - APP_NAME=Ingest_Api
       - INGEST_BASE_PATH=$INGEST_BASE_PATH
+      - INGEST_HUDI_RATE_MINUTES=$INGEST_HUDI_RATE_MINUTES
       - INGEST_PUSHGATEWAY_HOST=pushgateway
       - INGEST_PUSHGATEWAY_PORT=9091
       - INGEST_REDIS_HOST=redis
