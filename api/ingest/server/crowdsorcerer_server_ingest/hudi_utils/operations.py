@@ -90,7 +90,7 @@ class HudiOperations:
 
     @classmethod
     def insert_data(cls, data: Dict[str, Dict[str, list]]):
-        
+
         if not data:
             return
 
@@ -111,7 +111,7 @@ class HudiOperations:
         data_sensor_keys = {key for obj in data for key in obj.keys()} - {'path_year', 'path_month', 'path_day', 'uuid', 'ts'}
 
         df = cls.SPARK.createDataFrame(
-            data,
+            cls.SPARK.sparkContext.parallelize(data, 4),
             schema=StructType(
                 [
                     StructField(k, ArrayType(StructType([
