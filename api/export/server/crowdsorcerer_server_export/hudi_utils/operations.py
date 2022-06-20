@@ -8,7 +8,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 from pandas import DataFrame, Series
 
-from crowdsorcerer_server_export.exceptions import EmptyDataset
+from crowdsorcerer_server_export.exceptions import EmptyDataset, FeatureSpaceTooLarge
 
 
 
@@ -31,6 +31,8 @@ class HudiOperations:
     uuid_map_counter = 0
 
     METADATA_COLUMNS_NAMES = ['id', 'year', 'month', 'day']
+
+    DATASET_MAX_COLUMNS = 50
 
     @classmethod
     def get_data(cls, date_from: date=None, date_to: date=None, types: List[str]=None, units: List[str]=None) -> Tuple[DataFrame, Dict[str, str]]:
@@ -72,18 +74,23 @@ class HudiOperations:
             df = df.select([ col for col, _ in (metadata_columns + data_columns) ])
 
         if units:
-            units_columns = [(F.from_json(F.regexp_replace(column[0].attributes, '=(.*?)([,}])', ':"$1"$2'), 'unit_of_measurement STRING', {'allowUnquotedFieldNames': True}).unit_of_measurement.alias(column_name), column_name) for column, column_name in data_columns]
+            units_columns = [F.from_json(F.regexp_replace(column[0].attributes, '=(.*?)([,}])', ':"$1"$2'), 'unit_of_measurement STRING', {'allowUnquotedFieldNames': True}).unit_of_measurement for column, _ in data_columns]
             df = df.where( reduce(ior, [ column.isin(units) for column in units_columns ]) )
             data_columns = [ (col, name) for col, name in data_columns if name in df.columns ]
 
         redundant_columns = df.agg(*[F.min(col.isNull()).alias(name) for col, name in data_columns])\
             .first() \
             .asDict()
-        df = df.drop(*[column for column, redundant in redundant_columns if redundant])
+        df = df.drop(*[column for column, redundant in redundant_columns.items() if redundant])
         data_columns = [ (col, name) for col, name in data_columns if name in df.columns ]
 
-        if len(df.columns) == len(metadata_columns) or df.count() == 0:
+        n_data_columns = len(df.columns)
+
+        if n_data_columns == len(metadata_columns) or df.count() == 0:
             raise EmptyDataset()
+
+        if n_data_columns > cls.DATASET_MAX_COLUMNS:
+            raise FeatureSpaceTooLarge()
 
 
         # Extremelly expensive, loads everything into memory!

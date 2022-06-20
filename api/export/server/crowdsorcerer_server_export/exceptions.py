@@ -1,5 +1,7 @@
-from http.client import BAD_REQUEST, NO_CONTENT
+from http.client import BAD_REQUEST, INTERNAL_SERVER_ERROR, NO_CONTENT
+from msilib.schema import Feature
 from crowdsorcerer_server_export.df2CKAN import EXPORT_FORMATS
+from crowdsorcerer_server_export.hudi_utils.operations import HudiOperations
 
 
 
@@ -32,6 +34,16 @@ class EmptyDataset(RuntimeError):
     def __str__(self):
         return "The provided query filters produce a dataset without data columns or rows."
 
+class FeatureSpaceTooLarge(RuntimeError):
+    """The filtered dataset has too many columns to efficiently work with it. Consider applying more restrictive filters, and obtain a large dataset in parts."""
+
+    def __init__(self, n_columns: int=None):
+        self.n_columns = n_columns
+
+    def __str__(self):
+        return f"""The filtered dataset has too many columns to efficiently work with it ({f'{self.n_columns} >' if self.n_columns else 'more than'} {HudiOperations.DATASET_MAX_COLUMNS}).
+Consider applying more restrictive filters, and obtain a large dataset in parts."""
+
 
 
 BAD_DATE_FORMAT = {
@@ -59,4 +71,13 @@ EMTPY_DATASET = {
             'status': NO_CONTENT,
             'title': 'No Content'
         }, NO_CONTENT)
+}
+
+FEATURE_SPACE_TOO_LARGE = {
+    'error_code': FeatureSpaceTooLarge,
+    'function': lambda error: ({
+            'detail': str(error),
+            'status': INTERNAL_SERVER_ERROR,
+            'title': 'Internal Server Error'
+        }, INTERNAL_SERVER_ERROR)
 }
