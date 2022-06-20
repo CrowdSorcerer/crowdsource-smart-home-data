@@ -42,7 +42,7 @@ class FeatureSpaceTooLarge(RuntimeError):
         self.n_columns = n_columns
 
     def __str__(self):
-        return f"""The filtered dataset has too many columns to efficiently work with it ({f'{self.n_columns} >' if self.n_columns else 'more than'} {DATASET_MAX_COLUMNS}).
+        return f"""The filtered dataset has too many columns to efficiently work with it ({f'{self.n_columns} >' if self.n_columns else 'more than'} {self.DATASET_MAX_COLUMNS}).
 Consider applying more restrictive filters, and obtain a large dataset in parts."""
 
 
