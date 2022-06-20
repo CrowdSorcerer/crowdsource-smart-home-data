@@ -32,8 +32,6 @@ class HudiOperations:
 
     METADATA_COLUMNS_NAMES = ['id', 'year', 'month', 'day']
 
-    DATASET_MAX_COLUMNS = 50
-
     @classmethod
     def get_data(cls, date_from: date=None, date_to: date=None, types: List[str]=None, units: List[str]=None) -> Tuple[DataFrame, Dict[str, str]]:
         df = cls.SPARK.read.format('hudi').load(cls.BASE_PATH)
@@ -89,7 +87,7 @@ class HudiOperations:
         if n_data_columns == len(metadata_columns) or df.count() == 0:
             raise EmptyDataset()
 
-        if n_data_columns > cls.DATASET_MAX_COLUMNS:
+        if n_data_columns > FeatureSpaceTooLarge.DATASET_MAX_COLUMNS:
             raise FeatureSpaceTooLarge()
 
 
