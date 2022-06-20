@@ -73,7 +73,7 @@ class HudiOperations:
 
         if units:
             units_columns = [F.from_json(F.regexp_replace(column[0].attributes, '=(.*?)([,}])', ':"$1"$2'), 'unit_of_measurement STRING', {'allowUnquotedFieldNames': True}).unit_of_measurement for column, _ in data_columns]
-            df = df.where( reduce(ior, [ column.isin(units) for column in units_columns ]) )
+            df = df.where( reduce(ior, [ column.isin(units) & column.isNotNull() for column in units_columns ]) )
 
         if data_columns:
             redundant_columns = df.agg(*[F.min(col.isNull()).alias(name) for col, name in data_columns])\
