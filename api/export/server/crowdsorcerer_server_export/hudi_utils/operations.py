@@ -84,7 +84,7 @@ class HudiOperations:
 
         n_data_columns = len(data_columns)
 
-        if n_data_columns == len(metadata_columns) or df.count() == 0:
+        if not n_data_columns or df.count() == 0:
             raise EmptyDataset()
 
         if n_data_columns > FeatureSpaceTooLarge.DATASET_MAX_COLUMNS:
