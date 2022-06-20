@@ -1,0 +1,117 @@
+openapi: 3.0.3
+info:
+  title: CrowdSorcerer Export API
+  description: The Export API for data exportation from the data lake into CKAN compliant
+    formats. Not all formats may be supported.
+  license:
+    name: GPLv3
+    url: https://www.gnu.org/licenses/gpl-3.0.en.html
+  version: 0.0.1
+servers:
+- url: https://smarthouse.av.it.pt/api/export
+  description: SmartHouse data gathering instance hosting the API
+tags:
+- name: data_extraction
+  description: |
+    # Data extraction
+    Extract the data present in the data lake into CKAN compliant formats. The data returned is compressed. For now, the following formats are supported: - JSON (recommended) - XML - CSV
+paths:
+  /formats:
+    get:
+      tags:
+      - data_extraction
+      summary: List of the available extraction formats
+      operationId: available_formats
+      responses:
+        "200":
+          description: Successfully returned the list of available formats
+          content:
+            text/plain:
+              schema:
+                type: string
+                x-content-type: text/plain
+              example: "json, csv, xml"
+      x-openapi-router-controller: crowdsorcerer_server_export.controllers.data_extraction_controller
+  /dataset:
+    get:
+      tags:
+      - data_extraction
+      summary: "Extract data from the data lake into a CKAN compliant format, zipped."
+      operationId: data_extraction
+      parameters:
+      - name: formats
+        in: query
+        description: The case insensitive strings representing the dataset's output
+          formats
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+      - name: date_from
+        in: query
+        description: "Only data from this date forwards will be extracted (UTC+0,\
+          \ in ISO 8601 format), inclusive"
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          format: date
+      - name: date_to
+        in: query
+        description: "Only data from this date backwards will be extracted (UTC+0,\
+          \ in ISO 8601 format), inclusive"
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          format: date
+      - name: types
+        in: query
+        description: Only data from these types of producer will be extracted (e.g.
+          sensor)
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+      - name: units
+        in: query
+        description: Only data which is represented in the specified units of measurement
+          will be extracted (e.g. GHz)
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+      responses:
+        "200":
+          description: "The extracted data, compressed in a zip."
+          headers:
+            Content-Disposition:
+              description: "Don't show the data inline, download locally as a file."
+              style: simple
+              explode: false
+              schema:
+                type: string
+              example: attachment; filename="crowdsorcerer_extract.zip"
+          content:
+            application/zip:
+              encoding:
+                extractedData:
+                  contentType: application/zip
+                  style: form
+        default:
+          description: Operation could not be carried out for an undefined reason.
+      x-openapi-router-controller: crowdsorcerer_server_export.controllers.data_extraction_controller
+components: {}
+x-original-swagger-version: "2.0"
+

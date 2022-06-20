@@ -1,0 +1,111 @@
+openapi: 3.0.3
+x-original-swagger-version: '2.0'
+info:
+    title: CrowdSorcerer Export API
+    version: 0.0.1
+    description: The Export API for data exportation from the data lake into CKAN compliant formats. Not all formats may be supported.
+    #termsOfService: 'http://swagger.io/terms/'
+    license:
+        name: 'GPLv3'
+        url: 'https://www.gnu.org/licenses/gpl-3.0.en.html'
+    #contact:
+        #name: API Support
+        #url: link
+        #email: apiteam@swagger.io
+paths:
+    /formats:
+        get:
+            operationId: available_formats
+            responses:
+                '200':
+                    content:
+                        text/plain:
+                            schema:
+                                type: string
+                            example: json, csv, xml
+                    description: Successfully returned the list of available formats
+            summary: List of the available extraction formats
+            tags:
+                - data_extraction
+    /dataset:
+        get:
+            operationId: data_extraction
+            parameters:
+                -
+                    name: formats
+                    in: query
+                    description: The case insensitive strings representing the dataset's output formats
+                    required: true
+                    schema:
+                        type: array
+                        items:
+                            type: string
+                -
+                    name: date_from
+                    in: query
+                    description: Only data from this date forwards will be extracted (UTC+0, in ISO 8601 format), inclusive
+                    required: false
+                    schema:
+                        type: string
+                        format: date
+                -
+                    name: date_to
+                    in: query
+                    description: Only data from this date backwards will be extracted (UTC+0, in ISO 8601 format), inclusive
+                    required: false
+                    schema:
+                        type: string
+                        format: date
+                -
+                    name: types
+                    in: query
+                    description: Only data from these types of producer will be extracted (e.g. sensor)
+                    required: false
+                    schema:
+                        type: array
+                        items:
+                            type: string
+                    style: form
+                -
+                    name: units
+                    in: query
+                    description: Only data which is represented in the specified units of measurement will be extracted (e.g. GHz)
+                    required: false
+                    schema:
+                        type: array
+                        items:
+                            type: string
+            responses:
+                '200':
+                    headers:
+                        Content-Disposition:
+                            description: Don't show the data inline, download locally as a file.
+                            schema:
+                                type: string
+                            example: attachment; filename="crowdsorcerer_extract.zip"
+                    content:
+                        application/zip:
+                            encoding:
+                                extractedData:
+                                    contentType: application/zip
+                    description: The extracted data, compressed in a zip.
+                default:
+                    description: Operation could not be carried out for an undefined reason.
+            summary: Extract data from the data lake into a CKAN compliant format, zipped.
+            tags:
+                - data_extraction
+servers:
+    - 
+        url: 'https://smarthouse.av.it.pt/api/export'
+        description: SmartHouse data gathering instance hosting the API
+tags:
+    - 
+        description: >
+            # Data extraction
+
+            Extract the data present in the data lake into CKAN compliant formats. The data returned is compressed.
+            For now, the following formats are supported:
+            - JSON (recommended)
+            - XML
+            - CSV
+        name: data_extraction

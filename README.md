@@ -7,6 +7,11 @@ Repository containing the main components of the project, such as the APIs and d
 docker-compose up --build
 ```
 
+### Main Website
+```
+https://smarthouse.av.it.pt/
+```
+
 ### Ingest API ui
 ```
 https://smarthouse.av.it.pt/api/ingest/ui/
@@ -19,7 +24,7 @@ https://smarthouse.av.it.pt/api/export/ui/
 
 ### Grafana ui
 ```
-https://smarthouse.av.it.pt/
+https://localhost:3000/
 ```
 
 ### Prometheus ui
