@@ -5,7 +5,7 @@ from functools import reduce
 from operator import ior
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import from_json, regexp_replace
+from pyspark.sql import functions as F
 from pandas import DataFrame, Series
 
 from crowdsorcerer_server_export.exceptions import EmptyDataset
@@ -67,31 +67,20 @@ class HudiOperations:
             OR (path_year={date_to.year} AND path_month={date_to.month} AND path_day<={date_to.day})')
 
         if types:
-            types_clean = [ type_.split('_')[0] for type_ in types ]
-            data_columns = [ (col, name) for col, name in data_columns if name.split('_')[0] in types_clean ]
+            # Suggestion: use df.colRegex(...)?
+            data_columns = [ (col, name) for col, name in data_columns if any(name.startswith(type_) for type_ in types) ]
             df = df.select([ col for col, _ in (metadata_columns + data_columns) ])
 
         if units:
-            units_columns = [(from_json(regexp_replace(column[0].attributes, '=(.*?)([,}])', ':"$1"$2'), 'unit_of_measurement STRING', {'allowUnquotedFieldNames': True}).unit_of_measurement.alias(column_name), column_name) for column, column_name in data_columns]
-            valid_data_columns = []
-            invalid_data_columns_names = []
-            for column, column_name in units_columns:
-                if df.select(column).dropna().count() == 0:
-                    invalid_data_columns_names.append(column_name)
-                else:
-                    valid_data_columns.append(column)
-            df = df.drop(*invalid_data_columns_names)
-            if valid_data_columns:
-                df = df.where( reduce(ior, [ column.isin(units) for column in valid_data_columns ]) )
+            units_columns = [(F.from_json(F.regexp_replace(column[0].attributes, '=(.*?)([,}])', ':"$1"$2'), 'unit_of_measurement STRING', {'allowUnquotedFieldNames': True}).unit_of_measurement.alias(column_name), column_name) for column, column_name in data_columns]
+            df = df.where( reduce(ior, [ column.isin(units) for column in units_columns ]) )
             data_columns = [ (col, name) for col, name in data_columns if name in df.columns ]
 
-        to_remove = []
-        for idx, (column, _) in enumerate(data_columns):
-            if df.select(column).dropna().count() == 0:
-                df = df.drop(column)
-                to_remove.append(idx)
-        for idx in to_remove:
-            data_columns.pop(idx)
+        redundant_columns = df.agg(*[F.min(col.isNull()).alias(name) for col, name in data_columns])\
+            .first() \
+            .asDict()
+        df = df.drop(*[column for column, redundant in redundant_columns if redundant])
+        data_columns = [ (col, name) for col, name in data_columns if name in df.columns ]
 
         if len(df.columns) == len(metadata_columns) or df.count() == 0:
             raise EmptyDataset()
