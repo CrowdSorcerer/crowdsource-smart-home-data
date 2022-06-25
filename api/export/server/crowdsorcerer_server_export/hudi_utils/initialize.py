@@ -13,5 +13,6 @@ def hudi_init():
     # This SparkSession configuration will be present in the entire application, since SparkSession is a singleton
     SparkSession.builder \
         .config(key='spark.serializer', value='org.apache.spark.serializer.KryoSerializer') \
+        .config(key='spark.driver.memory', value='4g') \
         .appName('Export API') \
         .getOrCreate()
